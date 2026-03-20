@@ -106,7 +106,7 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
     </style>
-    <div id="screensnap-hint">拖拽选择截图区域，选中后可拖动调整位置，按 ESC 取消</div>
+    <div id="screensnap-hint">${chrome.i18n.getMessage('selector_hint')}</div>
   `;
 
   document.body.appendChild(overlay);
@@ -193,8 +193,8 @@
     toolbar = document.createElement('div');
     toolbar.id = 'screensnap-toolbar';
     toolbar.innerHTML = `
-      <button class="cancel">取消</button>
-      <button class="confirm">确认截图</button>
+      <button class="cancel">${chrome.i18n.getMessage('selector_cancel')}</button>
+      <button class="confirm">${chrome.i18n.getMessage('selector_confirm')}</button>
     `;
 
     updateToolbarPosition();
