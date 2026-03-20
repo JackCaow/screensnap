@@ -6,6 +6,21 @@
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+## 截图预览
+
+<table>
+  <tr>
+    <td align="center" width="300">
+      <img src="docs/popup.png" width="280" alt="弹窗菜单" />
+      <br /><b>弹窗菜单</b>
+    </td>
+    <td align="center">
+      <img src="docs/editor.png" alt="标注编辑器 + 长截屏" />
+      <br /><b>标注编辑器 + 长截屏</b>
+    </td>
+  </tr>
+</table>
+
 ## 功能特性
 
 ### 截图模式
