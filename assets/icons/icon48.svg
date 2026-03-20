@@ -1,34 +1,25 @@
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#818cf8;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="grad2" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1" />
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%" gradientTransform="rotate(145)">
+      <stop offset="0%" style="stop-color:#6a9a62;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4d6547;stop-opacity:1" />
     </linearGradient>
   </defs>
 
   <!-- Background rounded square -->
-  <rect x="4.800000000000001" y="4.800000000000001" width="38.4" height="38.4" rx="7.199999999999999" fill="url(#grad1)"/>
+  <rect x="4.8" y="4.8" width="38.4" height="38.4" rx="9.6" fill="url(#grad1)"/>
 
   <!-- Viewfinder corners -->
-  <g stroke="white" stroke-width="2.88" stroke-linecap="round" fill="none">
-    <!-- Top-left corner -->
-    <path d="M12 16.799999999999997 L12 12 L16.799999999999997 12"/>
-
-    <!-- Top-right corner -->
-    <path d="M31.200000000000003 12 L36 12 L36 16.799999999999997"/>
-
-    <!-- Bottom-left corner -->
-    <path d="M12 31.200000000000003 L12 36 L16.799999999999997 36"/>
-
-    <!-- Bottom-right corner -->
-    <path d="M31.200000000000003 36 L36 36 L36 31.200000000000003"/>
+  <g stroke="white" stroke-width="2.6" stroke-linecap="round" fill="none" opacity="0.9">
+    <path d="M14 18.7 L14 14 L18.7 14"/>
+    <path d="M29.3 14 L34 14 L34 18.7"/>
+    <path d="M14 29.3 L14 34 L18.7 34"/>
+    <path d="M29.3 34 L34 34 L34 29.3"/>
   </g>
 
-  <!-- Center circle (lens) -->
-  <circle cx="24" cy="24" r="5.76" fill="white" opacity="0.9"/>
-  <circle cx="24" cy="24" r="2.88" fill="url(#grad2)"/>
+  <!-- Outer lens ring -->
+  <circle cx="24" cy="24" r="6.8" stroke="white" stroke-width="1.4" fill="none" opacity="0.85"/>
+
+  <!-- Center dot -->
+  <circle cx="24" cy="24" r="2.6" fill="white" opacity="0.95"/>
 </svg>

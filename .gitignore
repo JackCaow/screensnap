@@ -22,6 +22,9 @@ ROADMAP.md
 *.crx
 *.pem
 
+# Store listing generated images (keep text descriptions)
+store/*.png
+
 # Dependencies (if added later)
 node_modules/
 

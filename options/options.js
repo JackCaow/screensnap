@@ -5,6 +5,7 @@
 class OptionsPage {
   constructor() {
     this.form = document.getElementById('settingsForm');
+    this.languageSelect = document.getElementById('languageSelect');
     this.qualitySlider = document.getElementById('imageQuality');
     this.qualityValue = document.getElementById('qualityValue');
     this.qualityGroup = document.getElementById('qualityGroup');
@@ -17,6 +18,10 @@ class OptionsPage {
   }
 
   async init() {
+    // Load language setting
+    const langResult = await chrome.storage.sync.get({ language: 'auto' });
+    this.languageSelect.value = langResult.language;
+
     const settings = await loadSettings();
     this.applyToForm(settings);
     this.bindEvents();
@@ -46,6 +51,14 @@ class OptionsPage {
   }
 
   bindEvents() {
+    // Language change
+    this.languageSelect.addEventListener('change', async () => {
+      await chrome.storage.sync.set({ language: this.languageSelect.value });
+      this.showToast();
+      // Reload page to apply new language
+      setTimeout(() => location.reload(), 800);
+    });
+
     // Format change
     this.form.querySelectorAll('input[name="saveFormat"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
@@ -107,7 +120,8 @@ class OptionsPage {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await initI18n();
   applyI18n();
   new OptionsPage();
 });

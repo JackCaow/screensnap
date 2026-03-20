@@ -22,7 +22,7 @@ class ScreenSnapHistory {
   }
 
   t(key, ...subs) {
-    return chrome.i18n.getMessage(key, subs) || key;
+    return i18n(key, ...subs);
   }
 
   async init() {
@@ -230,7 +230,7 @@ class ScreenSnapHistory {
     // Delete via background message handler (single source of truth)
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.deleteScreenshot(item.id);
+      this.confirmDelete(item.id);
     });
 
     return card;
@@ -287,6 +287,54 @@ class ScreenSnapHistory {
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + time;
   }
 
+  confirmDelete(id) {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog';
+
+    const h3 = document.createElement('h3');
+    h3.setAttribute('data-i18n', 'history_deleteConfirmTitle');
+    h3.textContent = this.t('history_deleteConfirmTitle');
+    dialog.appendChild(h3);
+
+    const p = document.createElement('p');
+    p.setAttribute('data-i18n', 'history_deleteConfirmDesc');
+    p.textContent = this.t('history_deleteConfirmDesc');
+    dialog.appendChild(p);
+
+    const actions = document.createElement('div');
+    actions.className = 'confirm-actions';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-cancel';
+    cancelBtn.setAttribute('data-i18n', 'preview_cancel');
+    cancelBtn.textContent = this.t('preview_cancel');
+    actions.appendChild(cancelBtn);
+
+    const dangerBtn = document.createElement('button');
+    dangerBtn.className = 'btn-danger';
+    dangerBtn.setAttribute('data-i18n', 'history_delete');
+    dangerBtn.textContent = this.t('history_delete');
+    actions.appendChild(dangerBtn);
+
+    dialog.appendChild(actions);
+    overlay.appendChild(dialog);
+
+    cancelBtn.addEventListener('click', () => overlay.remove());
+    dangerBtn.addEventListener('click', async () => {
+      overlay.remove();
+      await this.deleteScreenshot(id);
+    });
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    document.body.appendChild(overlay);
+    applyI18n();
+  }
+
   async deleteScreenshot(id) {
     // Delegate to background service worker (single source of truth for index)
     try {
@@ -295,11 +343,11 @@ class ScreenSnapHistory {
         id
       });
       if (!response?.success) {
-        this.showToast(this.t('error_captureFailed'), false);
+        this.showToast(this.t('history_deleteFailed'), false);
         return;
       }
     } catch (e) {
-      this.showToast(this.t('error_captureFailed'), false);
+      this.showToast(this.t('history_deleteFailed'), false);
       return;
     }
 
@@ -318,10 +366,12 @@ class ScreenSnapHistory {
     dialog.className = 'confirm-dialog';
 
     const h3 = document.createElement('h3');
+    h3.setAttribute('data-i18n', 'history_clearAllTitle');
     h3.textContent = this.t('history_clearAllTitle');
     dialog.appendChild(h3);
 
     const p = document.createElement('p');
+    p.setAttribute('data-i18n', 'history_clearAllDesc');
     p.textContent = this.t('history_clearAllDesc');
     dialog.appendChild(p);
 
@@ -330,11 +380,13 @@ class ScreenSnapHistory {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'btn-cancel';
+    cancelBtn.setAttribute('data-i18n', 'preview_cancel');
     cancelBtn.textContent = this.t('preview_cancel');
     actions.appendChild(cancelBtn);
 
     const dangerBtn = document.createElement('button');
     dangerBtn.className = 'btn-danger';
+    dangerBtn.setAttribute('data-i18n', 'history_clearAllConfirm');
     dangerBtn.textContent = this.t('history_clearAllConfirm');
     actions.appendChild(dangerBtn);
 
@@ -351,6 +403,7 @@ class ScreenSnapHistory {
     });
 
     document.body.appendChild(overlay);
+    applyI18n();
   }
 
   async clearAll() {
@@ -378,7 +431,8 @@ class ScreenSnapHistory {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await initI18n();
   applyI18n();
   new ScreenSnapHistory();
 });

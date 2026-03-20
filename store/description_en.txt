@@ -1,0 +1,28 @@
+ScreenSnap — Professional Screenshot & Annotation Tool
+
+Capture any part of a webpage with ease. ScreenSnap offers three capture modes, a powerful built-in annotation editor, and screenshot history — all running locally with zero data collection.
+
+CAPTURE MODES
+- Region Screenshot (Alt+Shift+S): Drag to select any area on the page
+- Visible Area (Alt+Shift+A): Capture exactly what you see
+- Full Page (Alt+Shift+F): Auto-scroll and stitch the entire page into one image, with smart sticky header removal
+
+ANNOTATION EDITOR
+- Shapes: Rectangle, dashed rectangle, rounded rectangle, ellipse
+- Arrows: Single and double-headed arrows, straight lines
+- Drawing: Freehand pen and highlighter
+- Text & Numbers: Add labels and numbered markers
+- Privacy: Mosaic and blur tools to redact sensitive content
+- Full undo/redo support with keyboard shortcuts
+
+FEATURES
+- Screenshot history with thumbnails, search, and type filter
+- Save as PNG, JPG, or WebP with adjustable quality
+- Copy to clipboard with one click
+- Right-click context menu for quick capture
+- Customizable default colors and stroke width
+- Zoom controls with mouse wheel support
+- Bilingual: English and Chinese (Simplified)
+
+PRIVACY
+All data stays on your device. No analytics, no tracking, no external servers. Open-source under MIT License.
