@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>截图预览 - ScreenSnap</title>
+  <link rel="stylesheet" href="preview.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <!-- Lucide: scan -->
+          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/><path d="M12 7v10"/></svg>
+          <span>ScreenSnap</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="toolbar" id="toolbar">
+          <!-- 选择工具 - Lucide: mouse-pointer-2 -->
+          <button class="tool-btn" data-tool="select" title="选择 (V)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>
+          </button>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 形状工具组 -->
+          <div class="tool-group" data-tooltip="形状">
+            <!-- Lucide: square -->
+            <button class="tool-btn" data-tool="rect" title="矩形 (R)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+            </button>
+            <!-- Lucide: circle -->
+            <button class="tool-btn" data-tool="ellipse" title="椭圆 (O)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+            </button>
+            <!-- Lucide: arrow-up-right -->
+            <button class="tool-btn" data-tool="arrow" title="箭头 (A)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+            </button>
+            <!-- Lucide: minus -->
+            <button class="tool-btn" data-tool="line" title="直线 (L)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+            </button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 绘制工具组 -->
+          <div class="tool-group" data-tooltip="绘制">
+            <!-- Lucide: pencil -->
+            <button class="tool-btn" data-tool="pen" title="画笔 (P)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+            </button>
+            <!-- Lucide: highlighter -->
+            <button class="tool-btn" data-tool="highlighter" title="荧光笔 (H)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+            </button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 文字和标记 -->
+          <div class="tool-group" data-tooltip="标记">
+            <!-- Lucide: type -->
+            <button class="tool-btn" data-tool="text" title="文字 (T)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
+            </button>
+            <!-- Lucide: circle-dot -->
+            <button class="tool-btn" data-tool="number" title="序号 (N)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="1"/></svg>
+            </button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 遮挡工具组 -->
+          <div class="tool-group" data-tooltip="遮挡">
+            <!-- Lucide: grid-3x3 -->
+            <button class="tool-btn" data-tool="mosaic" title="马赛克 (M)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+            </button>
+            <!-- Lucide: droplets -->
+            <button class="tool-btn" data-tool="blur" title="模糊 (B)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>
+            </button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 颜色和粗细 -->
+          <div class="color-picker-wrapper">
+            <button class="color-btn" id="colorBtn" title="选择颜色">
+              <span class="color-indicator" id="colorIndicator" style="background:#ef4444"></span>
+              <!-- Lucide: chevron-down -->
+              <svg class="dropdown-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="color-popup hidden" id="colorPopup">
+              <div class="color-grid">
+                <button class="color-swatch" data-color="#ef4444" style="background:#ef4444" title="红色"></button>
+                <button class="color-swatch" data-color="#f97316" style="background:#f97316" title="橙色"></button>
+                <button class="color-swatch" data-color="#eab308" style="background:#eab308" title="黄色"></button>
+                <button class="color-swatch" data-color="#84cc16" style="background:#84cc16" title="黄绿"></button>
+                <button class="color-swatch" data-color="#22c55e" style="background:#22c55e" title="绿色"></button>
+                <button class="color-swatch" data-color="#14b8a6" style="background:#14b8a6" title="青色"></button>
+                <button class="color-swatch" data-color="#3b82f6" style="background:#3b82f6" title="蓝色"></button>
+                <button class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6" title="紫色"></button>
+                <button class="color-swatch" data-color="#ec4899" style="background:#ec4899" title="粉色"></button>
+                <button class="color-swatch" data-color="#f43f5e" style="background:#f43f5e" title="玫红"></button>
+                <button class="color-swatch" data-color="#ffffff" style="background:#ffffff" title="白色"></button>
+                <button class="color-swatch" data-color="#000000" style="background:#000000" title="黑色"></button>
+              </div>
+              <div class="color-custom">
+                <input type="color" id="colorPicker" class="color-picker-input" value="#ef4444" title="自定义颜色">
+                <span class="color-custom-label">自定义</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stroke-picker-wrapper">
+            <button class="stroke-btn-main" id="strokeBtn" title="线条粗细">
+              <span class="stroke-indicator" id="strokeIndicator"></span>
+              <!-- Lucide: chevron-down -->
+              <svg class="dropdown-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="stroke-popup hidden" id="strokePopup">
+              <button class="stroke-option active" data-width="2" title="细">
+                <span class="stroke-line" style="height:2px"></span>
+                <span class="stroke-label">细</span>
+              </button>
+              <button class="stroke-option" data-width="4" title="中">
+                <span class="stroke-line" style="height:4px"></span>
+                <span class="stroke-label">中</span>
+              </button>
+              <button class="stroke-option" data-width="6" title="粗">
+                <span class="stroke-line" style="height:6px"></span>
+                <span class="stroke-label">粗</span>
+              </button>
+              <button class="stroke-option" data-width="8" title="特粗">
+                <span class="stroke-line" style="height:8px"></span>
+                <span class="stroke-label">特粗</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- 操作按钮 -->
+          <!-- Lucide: undo-2 -->
+          <button class="tool-btn" id="undoBtn" title="撤销 (Ctrl+Z)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+          </button>
+          <!-- Lucide: redo-2 -->
+          <button class="tool-btn" id="redoBtn" title="重做 (Ctrl+Y)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+          </button>
+          <!-- Lucide: trash-2 -->
+          <button class="tool-btn danger" id="clearBtn" title="清除标注">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="image-info" id="imageInfo"></div>
+        <!-- Lucide: copy -->
+        <button id="copyBtn" class="btn btn-secondary" title="复制到剪贴板 (Ctrl+C)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span>复制</span>
+        </button>
+        <!-- Lucide: download -->
+        <button id="downloadBtn" class="btn btn-primary" title="保存到本地 (Ctrl+S)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          <span>保存</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="canvas-container" id="canvasContainer">
+        <div class="canvas-wrapper" id="canvasWrapper">
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>加载中...</span>
+          </div>
+          <canvas id="canvas" class="hidden"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <div class="zoom-bar" id="zoomBar">
+      <button class="zoom-btn" id="zoomOut" title="缩小 (Ctrl+-)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+      </button>
+      <span class="zoom-level" id="zoomLevel" title="点击适宽">100%</span>
+      <button class="zoom-btn" id="zoomIn" title="放大 (Ctrl+=)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+      </button>
+      <div class="zoom-divider"></div>
+      <button class="zoom-btn" id="zoomFitWidth" title="适应宽度 (Ctrl+0)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3H3v18h18V3z"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+      </button>
+      <button class="zoom-btn" id="zoomFitView" title="适应窗口">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+    </div>
+
+    <div id="toast" class="toast hidden">
+      <span id="toastText"></span>
+    </div>
+
+    <div id="textInput" class="text-input-overlay hidden">
+      <textarea id="textArea" placeholder="输入文字..."></textarea>
+      <div class="text-input-actions">
+        <button id="textCancel" class="btn btn-secondary">取消</button>
+        <button id="textConfirm" class="btn btn-primary">确认</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="preview.js"></script>
+</body>
+</html>
