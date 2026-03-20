@@ -5,7 +5,21 @@
  */
 
 let _i18nMessages = null; // cached messages for the override locale
+let _i18nFallback = null; // fallback messages loaded from default locale
+let _i18nFallbackLoading = false;
 let _i18nReady = false;
+
+/**
+ * Eagerly load fallback messages from the default locale (zh_CN).
+ * This ensures translations work even when chrome.i18n.getMessage fails.
+ */
+function _loadFallbackMessages() {
+  _i18nFallbackLoading = true;
+  const url = chrome.runtime.getURL('_locales/zh_CN/messages.json');
+  fetch(url).then(r => r.json()).then(data => {
+    _i18nFallback = data;
+  }).catch(() => {});
+}
 
 /**
  * Initialize i18n: load override locale if set, otherwise use chrome.i18n default.
@@ -25,6 +39,10 @@ async function initI18n() {
   } else {
     _i18nMessages = null;
   }
+  // Pre-load fallback messages for robustness
+  if (!_i18nFallback && !_i18nFallbackLoading) {
+    _loadFallbackMessages();
+  }
   _i18nReady = true;
 }
 
@@ -32,9 +50,9 @@ async function initI18n() {
  * Get a translated message. Uses override locale if loaded, otherwise chrome.i18n.
  */
 function i18n(key, ...subs) {
+  // Try override locale first
   if (_i18nMessages && _i18nMessages[key]) {
     let msg = _i18nMessages[key].message || key;
-    // Handle placeholders ($1, $2, ...)
     if (subs.length > 0 && _i18nMessages[key].placeholders) {
       const ph = _i18nMessages[key].placeholders;
       for (const [name, def] of Object.entries(ph)) {
@@ -46,7 +64,27 @@ function i18n(key, ...subs) {
     }
     return msg;
   }
-  return chrome.i18n.getMessage(key, subs) || key;
+  // Try chrome.i18n API (works for default_locale keys)
+  const chromeMsg = chrome.i18n.getMessage(key, subs);
+  if (chromeMsg) return chromeMsg;
+  // Fallback: try loading default locale messages if not already loaded
+  if (!_i18nMessages && !_i18nFallbackLoading) {
+    _loadFallbackMessages();
+  }
+  if (_i18nFallback && _i18nFallback[key]) {
+    let msg = _i18nFallback[key].message || key;
+    if (subs.length > 0 && _i18nFallback[key].placeholders) {
+      const ph = _i18nFallback[key].placeholders;
+      for (const [name, def] of Object.entries(ph)) {
+        const idx = parseInt(def.content.replace('$', '')) - 1;
+        if (idx >= 0 && idx < subs.length) {
+          msg = msg.replace(new RegExp('\\$' + name + '\\$', 'gi'), subs[idx]);
+        }
+      }
+    }
+    return msg;
+  }
+  return key;
 }
 
 /**

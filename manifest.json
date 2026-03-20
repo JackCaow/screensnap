@@ -53,6 +53,13 @@
         "mac": "Alt+Shift+F"
       },
       "description": "__MSG_cmd_captureFullpage__"
+    },
+    "capture-gif": {
+      "suggested_key": {
+        "default": "Alt+Shift+G",
+        "mac": "Alt+Shift+G"
+      },
+      "description": "__MSG_cmd_captureGif__"
     }
   }
 }

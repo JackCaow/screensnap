@@ -265,7 +265,8 @@ class ScreenSnapHistory {
     const labels = {
       visible: this.t('history_typeVisible'),
       fullpage: this.t('history_typeFullpage'),
-      region: this.t('history_typeRegion')
+      region: this.t('history_typeRegion'),
+      gif: this.t('history_typeGif')
     };
     return labels[type] || type;
   }
@@ -295,12 +296,10 @@ class ScreenSnapHistory {
     dialog.className = 'confirm-dialog';
 
     const h3 = document.createElement('h3');
-    h3.setAttribute('data-i18n', 'history_deleteConfirmTitle');
     h3.textContent = this.t('history_deleteConfirmTitle');
     dialog.appendChild(h3);
 
     const p = document.createElement('p');
-    p.setAttribute('data-i18n', 'history_deleteConfirmDesc');
     p.textContent = this.t('history_deleteConfirmDesc');
     dialog.appendChild(p);
 
@@ -309,13 +308,11 @@ class ScreenSnapHistory {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'btn-cancel';
-    cancelBtn.setAttribute('data-i18n', 'preview_cancel');
     cancelBtn.textContent = this.t('preview_cancel');
     actions.appendChild(cancelBtn);
 
     const dangerBtn = document.createElement('button');
     dangerBtn.className = 'btn-danger';
-    dangerBtn.setAttribute('data-i18n', 'history_delete');
     dangerBtn.textContent = this.t('history_delete');
     actions.appendChild(dangerBtn);
 
@@ -332,23 +329,27 @@ class ScreenSnapHistory {
     });
 
     document.body.appendChild(overlay);
-    applyI18n();
   }
 
   async deleteScreenshot(id) {
-    // Delegate to background service worker (single source of truth for index)
+    // Try background service worker first, fall back to direct storage operation
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'DELETE_SCREENSHOT',
         id
       });
       if (!response?.success) {
+        // Background handler failed — try direct deletion as fallback
+        await this.directDelete(id);
+      }
+    } catch (e) {
+      // Service worker may be inactive — delete directly from storage
+      try {
+        await this.directDelete(id);
+      } catch (err) {
         this.showToast(this.t('history_deleteFailed'), false);
         return;
       }
-    } catch (e) {
-      this.showToast(this.t('history_deleteFailed'), false);
-      return;
     }
 
     // Update local state after confirmed deletion
@@ -356,6 +357,13 @@ class ScreenSnapHistory {
     this.applyFilter();
     this.render();
     this.showToast(this.t('history_deleted'));
+  }
+
+  async directDelete(id) {
+    const result = await chrome.storage.local.get('ss_index');
+    const index = (result.ss_index || []).filter(s => s.id !== id);
+    await chrome.storage.local.set({ ss_index: index });
+    await chrome.storage.local.remove([id, id + '_thumb', id + '_annotations']);
   }
 
   confirmClearAll() {
@@ -366,12 +374,10 @@ class ScreenSnapHistory {
     dialog.className = 'confirm-dialog';
 
     const h3 = document.createElement('h3');
-    h3.setAttribute('data-i18n', 'history_clearAllTitle');
     h3.textContent = this.t('history_clearAllTitle');
     dialog.appendChild(h3);
 
     const p = document.createElement('p');
-    p.setAttribute('data-i18n', 'history_clearAllDesc');
     p.textContent = this.t('history_clearAllDesc');
     dialog.appendChild(p);
 
@@ -380,13 +386,11 @@ class ScreenSnapHistory {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'btn-cancel';
-    cancelBtn.setAttribute('data-i18n', 'preview_cancel');
     cancelBtn.textContent = this.t('preview_cancel');
     actions.appendChild(cancelBtn);
 
     const dangerBtn = document.createElement('button');
     dangerBtn.className = 'btn-danger';
-    dangerBtn.setAttribute('data-i18n', 'history_clearAllConfirm');
     dangerBtn.textContent = this.t('history_clearAllConfirm');
     actions.appendChild(dangerBtn);
 
@@ -403,7 +407,6 @@ class ScreenSnapHistory {
     });
 
     document.body.appendChild(overlay);
-    applyI18n();
   }
 
   async clearAll() {

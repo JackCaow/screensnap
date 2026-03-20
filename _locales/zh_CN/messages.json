@@ -5,6 +5,7 @@
   "cmd_captureRegion": { "message": "区域截图" },
   "cmd_captureVisible": { "message": "截取可视区域" },
   "cmd_captureFullpage": { "message": "长截屏" },
+  "cmd_captureGif": { "message": "录制 GIF" },
 
   "popup_captureRegion": { "message": "区域截图" },
   "popup_captureVisible": { "message": "截取可视区域" },
@@ -144,5 +145,18 @@
   "history_daysAgo": { "message": "$DAYS$ 天前", "placeholders": { "DAYS": { "content": "$1" } } },
   "history_typeVisible": { "message": "可视区域" },
   "history_typeFullpage": { "message": "长截屏" },
-  "history_typeRegion": { "message": "区域" }
+  "history_typeRegion": { "message": "区域" },
+  "history_typeGif": { "message": "GIF" },
+  "history_filterGif": { "message": "GIF" },
+
+  "popup_captureGif": { "message": "录制 GIF" },
+
+  "gif_selectHint": { "message": "拖拽选择录制区域" },
+  "gif_record": { "message": "录制" },
+  "gif_stop": { "message": "停止" },
+  "gif_startFailed": { "message": "启动 GIF 录制失败" },
+  "gif_encoding": { "message": "正在编码 GIF..." },
+  "gif_encodingProgress": { "message": "正在编码 GIF... $PERCENT$%", "placeholders": { "PERCENT": { "content": "$1" } } },
+  "gif_encodingFailed": { "message": "GIF 编码失败" },
+  "gif_noFrames": { "message": "未找到 GIF 帧数据" }
 }

@@ -555,6 +555,8 @@ class ScreenSnapPreview {
     this.zoomFitViewBtn = document.getElementById('zoomFitView');
 
     this.screenshotId = null;
+    this.isGifMode = false;
+    this.gifDataUrl = null;
     this.zoom = 1;           // 1 = actual pixel size
     this.fitWidthZoom = 1;   // calculated on load
     this.fitViewZoom = 1;    // calculated on load
@@ -901,12 +903,29 @@ class ScreenSnapPreview {
 
   async loadScreenshot() {
     try {
-      // Get screenshot ID from URL parameter
       const urlParams = new URLSearchParams(window.location.search);
+
+      // Check if this is a GIF encoding request
+      const gifId = urlParams.get('gif');
+      if (gifId) {
+        await this.loadGifFrames(gifId);
+        return;
+      }
+
+      // Get screenshot ID from URL parameter
       this.screenshotId = urlParams.get('id');
 
       if (!this.screenshotId) {
         this.showError(i18n('error_noScreenshot'));
+        return;
+      }
+
+      // Check if this is a saved GIF (type=gif in index)
+      const indexResult = await chrome.storage.local.get('ss_index');
+      const index = indexResult.ss_index || [];
+      const meta = index.find(s => s.id === this.screenshotId);
+      if (meta && meta.type === 'gif') {
+        await this.loadSavedGif(this.screenshotId);
         return;
       }
 
@@ -953,6 +972,145 @@ class ScreenSnapPreview {
     }
   }
 
+  // ==================== GIF Handling ====================
+
+  async loadGifFrames(gifId) {
+    this.isGifMode = true;
+    this.loadingEl.querySelector('span').textContent = i18n('gif_encoding') || 'Encoding GIF...';
+
+    try {
+      const result = await chrome.storage.local.get('_gif_pending');
+      const gifData = result._gif_pending;
+
+      if (!gifData || gifData.id !== gifId) {
+        this.showError(i18n('gif_noFrames') || 'No GIF frames found');
+        return;
+      }
+
+      const { frames, width, height, originalWidth, originalHeight, fps } = gifData;
+      const targetW = width;
+      const targetH = height;
+
+      // Encode GIF using GIFEncoder
+      const encoder = new GIFEncoder(targetW, targetH);
+      encoder.setDelay(Math.round(1000 / fps));
+      encoder.setRepeat(0); // Loop forever
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = targetW;
+      tempCanvas.height = targetH;
+      const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+      for (let i = 0; i < frames.length; i++) {
+        // Update loading progress
+        const pct = Math.round(((i + 1) / frames.length) * 100);
+        this.loadingEl.querySelector('span').textContent =
+          (i18n('gif_encodingProgress') || 'Encoding GIF... $1%').replace('$1', pct).replace('$PERCENT$', pct);
+
+        const img = await this._loadImageAsync(frames[i]);
+        tempCtx.clearRect(0, 0, targetW, targetH);
+        tempCtx.drawImage(img, 0, 0, targetW, targetH);
+        const imageData = tempCtx.getImageData(0, 0, targetW, targetH);
+        encoder.addFrame(imageData);
+
+        // Yield to UI thread
+        if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+      }
+
+      const gifBlob = encoder.encode();
+      const gifDataUrl = await this._blobToDataUrl(gifBlob);
+
+      // Save GIF to storage
+      const id = gifData.id;
+      await chrome.runtime.sendMessage({
+        type: 'SAVE_GIF',
+        id,
+        dataUrl: gifDataUrl
+      });
+
+      // Clean up pending data
+      await chrome.storage.local.remove('_gif_pending');
+
+      // Display the GIF
+      this.screenshotId = id;
+      this.gifDataUrl = gifDataUrl;
+      this._displayGif(gifDataUrl, targetW, targetH, frames.length, fps);
+
+    } catch (error) {
+      console.error('GIF encoding error:', error);
+      this.showError(i18n('gif_encodingFailed') || 'GIF encoding failed');
+    }
+  }
+
+  async loadSavedGif(id) {
+    this.isGifMode = true;
+    try {
+      const result = await chrome.storage.local.get(id);
+      const gifDataUrl = result[id];
+      if (!gifDataUrl) {
+        this.showError(i18n('error_screenshotExpired'));
+        return;
+      }
+
+      this.gifDataUrl = gifDataUrl;
+      const img = await this._loadImageAsync(gifDataUrl);
+      this._displayGif(gifDataUrl, img.width, img.height);
+    } catch (error) {
+      this.showError(i18n('error_loadFailed'));
+    }
+  }
+
+  _displayGif(dataUrl, width, height, frameCount, fps) {
+    // Hide canvas, show GIF as <img> element
+    this.canvas.classList.add('hidden');
+    this.loadingEl.classList.add('hidden');
+
+    // Disable annotation toolbar for GIF
+    this.toolbar.style.opacity = '0.3';
+    this.toolbar.style.pointerEvents = 'none';
+
+    const gifContainer = document.createElement('div');
+    gifContainer.className = 'gif-preview-container';
+    gifContainer.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:12px;';
+
+    const gifImg = document.createElement('img');
+    gifImg.src = dataUrl;
+    gifImg.style.cssText = `max-width:100%; border-radius:8px; box-shadow: 0 8px 24px rgba(44,53,42,0.08);`;
+    gifContainer.appendChild(gifImg);
+
+    if (frameCount && fps) {
+      const info = document.createElement('div');
+      info.style.cssText = 'font-size:13px; color:var(--on-surface-variant); opacity:0.7;';
+      info.textContent = `GIF · ${width}×${height} · ${frameCount} frames · ${(frameCount / fps).toFixed(1)}s`;
+      gifContainer.appendChild(info);
+    }
+
+    this.canvasWrapper.appendChild(gifContainer);
+
+    // Update image info
+    const base64Len = dataUrl.split(',')[1]?.length || 0;
+    const sizeKB = Math.round((base64Len * 3 / 4) / 1024);
+    this.imageInfoEl.textContent = `GIF · ${width} × ${height} px · ${this.formatSize(sizeKB)}`;
+  }
+
+  _loadImageAsync(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  _blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
   // Save annotations to storage
   async saveAnnotations() {
     if (!this.screenshotId) return;
@@ -983,12 +1141,30 @@ class ScreenSnapPreview {
   // ==================== Export ====================
 
   async download() {
+    const timestamp = this.getTimestamp();
+
+    // GIF mode: download the GIF directly
+    if (this.isGifMode && this.gifDataUrl) {
+      const filename = `screensnap_${timestamp}.gif`;
+      chrome.downloads.download({
+        url: this.gifDataUrl,
+        filename: filename,
+        saveAs: true
+      }, (downloadId) => {
+        if (chrome.runtime.lastError) {
+          this.showToast(i18n('toast_saveFailed', chrome.runtime.lastError.message), false);
+        } else {
+          this.showToast(i18n('toast_saved'));
+        }
+      });
+      return;
+    }
+
     const settings = await loadSettings();
     const format = settings.saveFormat || 'png';
     const mimeType = `image/${format === 'jpg' ? 'jpeg' : format}`;
     const quality = format === 'png' ? undefined : settings.imageQuality;
     const dataUrl = this.canvas.toDataURL(mimeType, quality);
-    const timestamp = this.getTimestamp();
     const filename = `screenshot_${timestamp}.${format}`;
 
     chrome.downloads.download({
@@ -1006,6 +1182,20 @@ class ScreenSnapPreview {
 
   async copyToClipboard() {
     try {
+      // GIF mode: copy first frame as PNG (GIF not supported in clipboard)
+      if (this.isGifMode && this.gifDataUrl) {
+        const img = await this._loadImageAsync(this.gifDataUrl);
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = img.width;
+        tempCanvas.height = img.height;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        this.showToast(i18n('toast_copied'));
+        return;
+      }
+
       const blob = await new Promise(resolve => {
         this.canvas.toBlob(resolve, 'image/png');
       });

@@ -5,6 +5,7 @@
   "cmd_captureRegion": { "message": "Capture Region" },
   "cmd_captureVisible": { "message": "Capture Visible Area" },
   "cmd_captureFullpage": { "message": "Full Page Screenshot" },
+  "cmd_captureGif": { "message": "Record GIF" },
 
   "popup_captureRegion": { "message": "Capture Region" },
   "popup_captureVisible": { "message": "Capture Visible Area" },
@@ -144,5 +145,18 @@
   "history_daysAgo": { "message": "$DAYS$ days ago", "placeholders": { "DAYS": { "content": "$1" } } },
   "history_typeVisible": { "message": "Visible" },
   "history_typeFullpage": { "message": "Full Page" },
-  "history_typeRegion": { "message": "Region" }
+  "history_typeRegion": { "message": "Region" },
+  "history_typeGif": { "message": "GIF" },
+  "history_filterGif": { "message": "GIF" },
+
+  "popup_captureGif": { "message": "Record GIF" },
+
+  "gif_selectHint": { "message": "Drag to select recording area" },
+  "gif_record": { "message": "Record" },
+  "gif_stop": { "message": "Stop" },
+  "gif_startFailed": { "message": "Failed to start GIF recording" },
+  "gif_encoding": { "message": "Encoding GIF..." },
+  "gif_encodingProgress": { "message": "Encoding GIF... $PERCENT$%", "placeholders": { "PERCENT": { "content": "$1" } } },
+  "gif_encodingFailed": { "message": "GIF encoding failed" },
+  "gif_noFrames": { "message": "No GIF frames found" }
 }
