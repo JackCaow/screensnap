@@ -60,11 +60,20 @@ class AnnotationTool {
       case 'rect':
         this.drawRect(this.startX, this.startY, x - this.startX, y - this.startY);
         break;
+      case 'dashedRect':
+        this.drawDashedRect(this.startX, this.startY, x - this.startX, y - this.startY);
+        break;
+      case 'roundedRect':
+        this.drawRoundedRect(this.startX, this.startY, x - this.startX, y - this.startY);
+        break;
       case 'ellipse':
         this.drawEllipse(this.startX, this.startY, x, y);
         break;
       case 'arrow':
         this.drawArrow(this.startX, this.startY, x, y);
+        break;
+      case 'doubleArrow':
+        this.drawDoubleArrow(this.startX, this.startY, x, y);
         break;
       case 'line':
         this.drawLine(this.startX, this.startY, x, y);
@@ -155,6 +164,22 @@ class AnnotationTool {
     this.ctx.stroke();
   }
 
+  drawDashedRect(x, y, w, h) {
+    this.ctx.save();
+    this.ctx.setLineDash([8, 4]);
+    this.ctx.beginPath();
+    this.ctx.rect(x, y, w, h);
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  drawRoundedRect(x, y, w, h) {
+    const r = Math.min(8, Math.abs(w) / 4, Math.abs(h) / 4);
+    this.ctx.beginPath();
+    this.ctx.roundRect(x, y, w, h, r);
+    this.ctx.stroke();
+  }
+
   drawEllipse(x1, y1, x2, y2) {
     const cx = (x1 + x2) / 2;
     const cy = (y1 + y2) / 2;
@@ -184,6 +209,48 @@ class AnnotationTool {
     this.ctx.lineTo(
       x2 - headLength * Math.cos(angle + Math.PI / 6),
       y2 - headLength * Math.sin(angle + Math.PI / 6)
+    );
+    this.ctx.closePath();
+    this.ctx.fillStyle = this.color;
+    this.ctx.fill();
+  }
+
+  drawDoubleArrow(x1, y1, x2, y2) {
+    const headLength = 12 + this.strokeWidth * 2;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+
+    // Line
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(x2, y2);
+    this.ctx.stroke();
+
+    // Arrowhead at end
+    this.ctx.beginPath();
+    this.ctx.moveTo(x2, y2);
+    this.ctx.lineTo(
+      x2 - headLength * Math.cos(angle - Math.PI / 6),
+      y2 - headLength * Math.sin(angle - Math.PI / 6)
+    );
+    this.ctx.lineTo(
+      x2 - headLength * Math.cos(angle + Math.PI / 6),
+      y2 - headLength * Math.sin(angle + Math.PI / 6)
+    );
+    this.ctx.closePath();
+    this.ctx.fillStyle = this.color;
+    this.ctx.fill();
+
+    // Arrowhead at start (reverse direction)
+    const reverseAngle = angle + Math.PI;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(
+      x1 - headLength * Math.cos(reverseAngle - Math.PI / 6),
+      y1 - headLength * Math.sin(reverseAngle - Math.PI / 6)
+    );
+    this.ctx.lineTo(
+      x1 - headLength * Math.cos(reverseAngle + Math.PI / 6),
+      y1 - headLength * Math.sin(reverseAngle + Math.PI / 6)
     );
     this.ctx.closePath();
     this.ctx.fillStyle = this.color;
@@ -335,6 +402,22 @@ class AnnotationTool {
           annotation.endY - annotation.startY
         );
         break;
+      case 'dashedRect':
+        this.drawDashedRect(
+          annotation.startX,
+          annotation.startY,
+          annotation.endX - annotation.startX,
+          annotation.endY - annotation.startY
+        );
+        break;
+      case 'roundedRect':
+        this.drawRoundedRect(
+          annotation.startX,
+          annotation.startY,
+          annotation.endX - annotation.startX,
+          annotation.endY - annotation.startY
+        );
+        break;
       case 'ellipse':
         this.drawEllipse(
           annotation.startX,
@@ -354,6 +437,19 @@ class AnnotationTool {
           annotation.endY
         );
         this.color = savedColor;
+        break;
+      }
+      case 'doubleArrow': {
+        const savedColor2 = this.color;
+        this.ctx.strokeStyle = annotation.color;
+        this.color = annotation.color;
+        this.drawDoubleArrow(
+          annotation.startX,
+          annotation.startY,
+          annotation.endX,
+          annotation.endY
+        );
+        this.color = savedColor2;
         break;
       }
       case 'line':
@@ -469,6 +565,18 @@ class ScreenSnapPreview {
   }
 
   async init() {
+    // Load user settings for default color/stroke
+    try {
+      const settings = await loadSettings();
+      this.annotationTool.color = settings.defaultColor;
+      this.annotationTool.strokeWidth = settings.defaultStrokeWidth;
+      // Update UI to reflect loaded defaults
+      const indicator = document.getElementById('colorIndicator');
+      if (indicator) indicator.style.background = settings.defaultColor;
+      const picker = document.getElementById('colorPicker');
+      if (picker) picker.value = settings.defaultColor;
+    } catch (e) { /* use built-in defaults */ }
+
     this.setupToolbar();
     this.setupCanvas();
     this.setupZoom();
@@ -568,7 +676,7 @@ class ScreenSnapPreview {
       this.saveAnnotations();
     });
     this.clearBtn.addEventListener('click', () => {
-      if (confirm('确定要清除所有标注吗？')) {
+      if (confirm(chrome.i18n.getMessage('confirm_clearAll'))) {
         this.annotationTool.clear();
         this.saveAnnotations();
       }
@@ -697,7 +805,8 @@ class ScreenSnapPreview {
 
       // Tool shortcuts
       const toolShortcuts = {
-        'v': 'select', 'r': 'rect', 'o': 'ellipse', 'a': 'arrow',
+        'v': 'select', 'r': 'rect', 'd': 'dashedRect', 'u': 'roundedRect',
+        'o': 'ellipse', 'a': 'arrow', 'w': 'doubleArrow',
         'l': 'line', 'p': 'pen', 'h': 'highlighter', 't': 'text',
         'n': 'number', 'm': 'mosaic', 'b': 'blur'
       };
@@ -797,7 +906,7 @@ class ScreenSnapPreview {
       this.screenshotId = urlParams.get('id');
 
       if (!this.screenshotId) {
-        this.showError('未找到截图数据');
+        this.showError(chrome.i18n.getMessage('error_noScreenshot'));
         return;
       }
 
@@ -805,7 +914,7 @@ class ScreenSnapPreview {
       const screenshotData = result[this.screenshotId];
 
       if (!screenshotData) {
-        this.showError('截图数据已过期');
+        this.showError(chrome.i18n.getMessage('error_screenshotExpired'));
         return;
       }
 
@@ -834,13 +943,13 @@ class ScreenSnapPreview {
       };
 
       img.onerror = () => {
-        this.showError('图片加载失败');
+        this.showError(chrome.i18n.getMessage('error_imageLoadFailed'));
       };
 
       img.src = screenshotData;
     } catch (error) {
       console.error('Load screenshot error:', error);
-      this.showError('加载截图失败');
+      this.showError(chrome.i18n.getMessage('error_loadFailed'));
     }
   }
 
@@ -873,10 +982,14 @@ class ScreenSnapPreview {
 
   // ==================== Export ====================
 
-  download() {
-    const dataUrl = this.canvas.toDataURL('image/png');
+  async download() {
+    const settings = await loadSettings();
+    const format = settings.saveFormat || 'png';
+    const mimeType = `image/${format === 'jpg' ? 'jpeg' : format}`;
+    const quality = format === 'png' ? undefined : settings.imageQuality;
+    const dataUrl = this.canvas.toDataURL(mimeType, quality);
     const timestamp = this.getTimestamp();
-    const filename = `screenshot_${timestamp}.png`;
+    const filename = `screenshot_${timestamp}.${format}`;
 
     chrome.downloads.download({
       url: dataUrl,
@@ -884,9 +997,9 @@ class ScreenSnapPreview {
       saveAs: true
     }, (downloadId) => {
       if (chrome.runtime.lastError) {
-        this.showToast('保存失败: ' + chrome.runtime.lastError.message, false);
+        this.showToast(chrome.i18n.getMessage('toast_saveFailed', chrome.runtime.lastError.message), false);
       } else {
-        this.showToast('截图已保存');
+        this.showToast(chrome.i18n.getMessage('toast_saved'));
       }
     });
   }
@@ -901,10 +1014,10 @@ class ScreenSnapPreview {
         new ClipboardItem({ 'image/png': blob })
       ]);
 
-      this.showToast('已复制到剪贴板');
+      this.showToast(chrome.i18n.getMessage('toast_copied'));
     } catch (error) {
       console.error('Copy to clipboard error:', error);
-      this.showToast('复制失败', false);
+      this.showToast(chrome.i18n.getMessage('toast_copyFailed'), false);
     }
   }
 
@@ -968,5 +1081,6 @@ class ScreenSnapPreview {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  applyI18n();
   new ScreenSnapPreview();
 });

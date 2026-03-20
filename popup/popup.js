@@ -24,6 +24,14 @@ class ScreenSnapPopup {
     this.captureVisibleBtn.addEventListener('click', () => this.captureVisible());
     this.captureFullPageBtn.addEventListener('click', () => this.captureFullPage());
 
+    document.getElementById('openSettings').addEventListener('click', () => {
+      chrome.runtime.openOptionsPage();
+    });
+
+    document.getElementById('openHistory').addEventListener('click', () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('history/history.html') });
+    });
+
     chrome.runtime.onMessage.addListener((message) => {
       if (message.type === 'CAPTURE_PROGRESS') {
         this.updateProgress(message.progress);
@@ -31,7 +39,11 @@ class ScreenSnapPopup {
     });
   }
 
-  setLoading(loading, text = '正在截图...') {
+  t(key, ...subs) {
+    return chrome.i18n.getMessage(key, subs) || key;
+  }
+
+  setLoading(loading, text) {
     this.isCapturing = loading;
     this.captureRegionBtn.disabled = loading;
     this.captureVisibleBtn.disabled = loading;
@@ -39,7 +51,7 @@ class ScreenSnapPopup {
 
     if (loading) {
       this.statusEl.classList.remove('hidden');
-      this.statusTextEl.textContent = text;
+      this.statusTextEl.textContent = text || this.t('popup_capturing');
       this.errorEl.classList.add('hidden');
     } else {
       this.statusEl.classList.add('hidden');
@@ -58,7 +70,7 @@ class ScreenSnapPopup {
 
   updateProgress(progress) {
     this.progressFillEl.style.width = `${progress}%`;
-    this.statusTextEl.textContent = `正在截图... ${Math.round(progress)}%`;
+    this.statusTextEl.textContent = this.t('popup_capturingProgress', String(Math.round(progress)));
   }
 
   showError(message) {
@@ -75,13 +87,13 @@ class ScreenSnapPopup {
       });
 
       if (!response.success) {
-        this.showError(response.error || '启动区域选择失败');
+        this.showError(response.error || this.t('popup_startRegionFailed'));
         return;
       }
 
       window.close();
     } catch (error) {
-      this.showError(error.message || '启动区域选择失败');
+      this.showError(error.message || this.t('popup_startRegionFailed'));
     }
   }
 
@@ -89,7 +101,7 @@ class ScreenSnapPopup {
     if (this.isCapturing) return;
 
     try {
-      this.setLoading(true, '正在截取当前屏幕...');
+      this.setLoading(true, this.t('popup_capturingScreen'));
 
       const response = await chrome.runtime.sendMessage({
         type: 'CAPTURE_VISIBLE'
@@ -98,13 +110,13 @@ class ScreenSnapPopup {
       this.setLoading(false);
 
       if (response.success) {
-        this.openPreview(response.dataUrl);
+        await this.saveAndOpenPreview(response.dataUrl, 'visible');
       } else {
-        this.showError(response.error || '截图失败');
+        this.showError(response.error || this.t('popup_captureFailed'));
       }
     } catch (error) {
       this.setLoading(false);
-      this.showError(error.message || '截图失败');
+      this.showError(error.message || this.t('popup_captureFailed'));
     }
   }
 
@@ -112,7 +124,7 @@ class ScreenSnapPopup {
     if (this.isCapturing) return;
 
     try {
-      this.setLoading(true, '正在准备长截屏...');
+      this.setLoading(true, this.t('popup_preparingFullpage'));
       this.showProgress(true);
 
       const response = await chrome.runtime.sendMessage({
@@ -122,31 +134,31 @@ class ScreenSnapPopup {
       this.setLoading(false);
 
       if (response.success) {
-        this.openPreview(response.dataUrl);
+        await this.saveAndOpenPreview(response.dataUrl, 'fullpage');
       } else {
-        this.showError(response.error || '长截屏失败');
+        this.showError(response.error || this.t('popup_fullpageFailed'));
       }
     } catch (error) {
       this.setLoading(false);
-      this.showError(error.message || '长截屏失败');
+      this.showError(error.message || this.t('popup_fullpageFailed'));
     }
   }
 
-  openPreview(dataUrl) {
-    const id = 'ss_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    chrome.storage.local.set({ [id]: dataUrl }, () => {
-      if (chrome.runtime.lastError) {
-        console.error('Storage error:', chrome.runtime.lastError);
-        this.showError('截图数据过大，存储失败');
-        return;
-      }
-      chrome.tabs.create({
-        url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id
+  async saveAndOpenPreview(dataUrl, captureType) {
+    try {
+      await chrome.runtime.sendMessage({
+        type: 'SAVE_AND_OPEN_PREVIEW',
+        dataUrl,
+        captureType
       });
-    });
+    } catch (error) {
+      console.error('Save error:', error);
+      this.showError(this.t('popup_storageFailed'));
+    }
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  applyI18n();
   new ScreenSnapPopup();
 });

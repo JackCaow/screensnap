@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "ScreenSnap",
-  "version": "1.0.0",
-  "description": "Professional screenshot tool - capture visible area or full page with ease",
+  "name": "__MSG_extName__",
+  "version": "1.1.0",
+  "description": "__MSG_extDescription__",
+  "default_locale": "zh_CN",
   "permissions": [
     "activeTab",
     "scripting",
     "storage",
     "unlimitedStorage",
-    "downloads"
+    "downloads",
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -21,6 +23,7 @@
       "128": "assets/icons/icon128.png"
     }
   },
+  "options_page": "options/options.html",
   "background": {
     "service_worker": "background/background.js"
   },
@@ -35,21 +38,21 @@
         "default": "Alt+Shift+S",
         "mac": "Alt+Shift+S"
       },
-      "description": "区域截图"
+      "description": "__MSG_cmd_captureRegion__"
     },
     "capture-visible": {
       "suggested_key": {
         "default": "Alt+Shift+A",
         "mac": "Alt+Shift+A"
       },
-      "description": "截取可视区域"
+      "description": "__MSG_cmd_captureVisible__"
     },
     "capture-fullpage": {
       "suggested_key": {
         "default": "Alt+Shift+F",
         "mac": "Alt+Shift+F"
       },
-      "description": "长截屏"
+      "description": "__MSG_cmd_captureFullpage__"
     }
   }
 }

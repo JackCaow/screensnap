@@ -7,14 +7,14 @@ const CAPTURE_DELAY = 600;
 const MAX_RETRIES = 5;
 const RETRY_DELAY = 1500;
 
-// 长截屏限制配置
+// Full-page capture configuration
 const FULL_PAGE_CONFIG = {
   MAX_SCROLLS: 80,
   MAX_TOTAL_HEIGHT: 50000,
   STABLE_HEIGHT_CHECK_COUNT: 3,
   SCROLL_WAIT_TIME: 500,
-  // 每帧与上一帧重叠的像素数，用于裁掉 sticky/fixed 头部。
-  // 只要大于页面上最高的 sticky 元素即可（Google 搜索栏约 60px）。
+  // Overlap pixels between consecutive frames. Used to clip away
+  // sticky/fixed headers (e.g. Google search bar ~60px).
   OVERLAP: 160
 };
 
@@ -23,39 +23,128 @@ function generateScreenshotId() {
   return 'ss_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
 }
 
+// ==================== History / Metadata ====================
+
+const MAX_HISTORY = 50;
+const THUMB_MAX_WIDTH = 200;
+
+// Simple async mutex to prevent concurrent index writes
+let _indexLock = Promise.resolve();
+function withIndexLock(fn) {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const prev = _indexLock;
+  _indexLock = gate;
+  return prev.then(fn).finally(release);
+}
+
+async function generateThumbnail(dataUrl) {
+  try {
+    const img = await loadImage(dataUrl);
+    const scale = Math.min(THUMB_MAX_WIDTH / img.width, 1);
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = new OffscreenCanvas(w, h);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.6 });
+    return { thumbDataUrl: await blobToDataUrl(blob), width: img.width, height: img.height };
+  } catch (e) {
+    console.warn('Thumbnail generation failed:', e);
+    return { thumbDataUrl: null, width: 0, height: 0 };
+  }
+}
+
+function saveCaptureWithMetadata(id, dataUrl, type) {
+  return withIndexLock(async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
+    const { thumbDataUrl, width, height } = await generateThumbnail(dataUrl);
+
+  const meta = {
+    id,
+    timestamp: Date.now(),
+    url: tab?.url || '',
+    title: tab?.title || '',
+    type,
+    width,
+    height,
+    thumbnailId: id + '_thumb'
+  };
+
+  // Save data + thumbnail + update index in one batch
+  const store = { [id]: dataUrl };
+  if (thumbDataUrl) store[id + '_thumb'] = thumbDataUrl;
+
+  const result = await chrome.storage.local.get('ss_index');
+  const index = result.ss_index || [];
+  index.unshift(meta);
+
+  // Cleanup old entries beyond MAX_HISTORY
+  const removed = index.splice(MAX_HISTORY);
+  store.ss_index = index;
+
+  await chrome.storage.local.set(store);
+
+  // Remove data for old entries
+  if (removed.length > 0) {
+    const keysToRemove = [];
+    for (const item of removed) {
+      keysToRemove.push(item.id, item.id + '_thumb', item.id + '_annotations');
+    }
+    await chrome.storage.local.remove(keysToRemove);
+  }
+  });
+}
+
+// Shared: capture and open preview
+async function captureAndOpenPreview(type) {
+  let result;
+  if (type === 'capture-region') {
+    await startRegionSelect();
+    return;
+  } else if (type === 'capture-visible') {
+    result = await captureVisibleTab();
+  } else if (type === 'capture-fullpage') {
+    result = await captureFullPage();
+  }
+  if (result && result.success) {
+    const id = generateScreenshotId();
+    const captureType = type.replace('capture-', '');
+    await saveCaptureWithMetadata(id, result.dataUrl, captureType);
+    chrome.tabs.create({ url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id });
+  }
+}
+
 // Listen for keyboard shortcuts
 chrome.commands.onCommand.addListener(async (command) => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
   if (!tab) return;
+  if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
+  await captureAndOpenPreview(command);
+});
 
-  if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-    return;
-  }
+// Right-click context menu
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'capture-region',
+    title: chrome.i18n.getMessage('cmd_captureRegion'),
+    contexts: ['page', 'image', 'selection']
+  });
+  chrome.contextMenus.create({
+    id: 'capture-visible',
+    title: chrome.i18n.getMessage('cmd_captureVisible'),
+    contexts: ['page', 'image', 'selection']
+  });
+  chrome.contextMenus.create({
+    id: 'capture-fullpage',
+    title: chrome.i18n.getMessage('cmd_captureFullpage'),
+    contexts: ['page', 'image', 'selection']
+  });
+});
 
-  switch (command) {
-    case 'capture-region':
-      await startRegionSelect();
-      break;
-    case 'capture-visible': {
-      const visibleResult = await captureVisibleTab();
-      if (visibleResult.success) {
-        const id = generateScreenshotId();
-        await chrome.storage.local.set({ [id]: visibleResult.dataUrl });
-        chrome.tabs.create({ url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id });
-      }
-      break;
-    }
-    case 'capture-fullpage': {
-      const fullResult = await captureFullPage();
-      if (fullResult.success) {
-        const id = generateScreenshotId();
-        await chrome.storage.local.set({ [id]: fullResult.dataUrl });
-        chrome.tabs.create({ url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id });
-      }
-      break;
-    }
-  }
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
+  await captureAndOpenPreview(info.menuItemId);
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -76,6 +165,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'START_REGION_SELECT') {
     startRegionSelect().then(sendResponse);
+    return true;
+  }
+
+  if (message.type === 'SAVE_AND_OPEN_PREVIEW') {
+    (async () => {
+      const id = generateScreenshotId();
+      await saveCaptureWithMetadata(id, message.dataUrl, message.captureType || 'visible');
+      chrome.tabs.create({
+        url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id
+      });
+      sendResponse({ success: true, id });
+    })();
+    return true;
+  }
+
+  if (message.type === 'DELETE_SCREENSHOT') {
+    const id = message.id;
+    // Validate ID to prevent deletion of non-screenshot keys
+    if (typeof id !== 'string' || !id.startsWith('ss_') || id === 'ss_index') {
+      sendResponse({ success: false, error: 'Invalid screenshot ID' });
+      return true;
+    }
+    withIndexLock(async () => {
+      const result = await chrome.storage.local.get('ss_index');
+      const index = (result.ss_index || []).filter(s => s.id !== id);
+      await chrome.storage.local.set({ ss_index: index });
+      await chrome.storage.local.remove([id, id + '_thumb', id + '_annotations']);
+    }).then(() => sendResponse({ success: true }));
     return true;
   }
 });
@@ -124,11 +241,11 @@ async function captureVisibleTab() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!tab) {
-      return { success: false, error: '无法获取当前标签页' };
+      return { success: false, error: chrome.i18n.getMessage('error_noTab') };
     }
 
     if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-      return { success: false, error: '无法截取浏览器内部页面' };
+      return { success: false, error: chrome.i18n.getMessage('error_internalPage') };
     }
 
     const dataUrl = await captureWithRetry();
@@ -136,7 +253,7 @@ async function captureVisibleTab() {
     return { success: true, dataUrl };
   } catch (error) {
     console.error('Capture visible tab error:', error);
-    return { success: false, error: error.message || '截图失败' };
+    return { success: false, error: error.message || chrome.i18n.getMessage('error_captureFailed') };
   }
 }
 
@@ -149,11 +266,11 @@ async function captureFullPage() {
     [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!tab) {
-      return { success: false, error: '无法获取当前标签页' };
+      return { success: false, error: chrome.i18n.getMessage('error_noTab') };
     }
 
     if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-      return { success: false, error: '无法截取浏览器内部页面' };
+      return { success: false, error: chrome.i18n.getMessage('error_internalPage') };
     }
 
     await chrome.scripting.executeScript({
@@ -167,7 +284,7 @@ async function captureFullPage() {
 
   } catch (error) {
     console.error('Capture full page error:', error);
-    return { success: false, error: error.message || '长截屏失败' };
+    return { success: false, error: error.message || chrome.i18n.getMessage('error_fullpageFailed') };
   } finally {
     stopKeepAlive();
     if (tab) {
@@ -184,7 +301,7 @@ async function captureFullPageImpl(tab) {
   // Step 1: Get page info
   const pageInfo = await chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_INFO' });
   if (!pageInfo) {
-    return { success: false, error: '无法获取页面信息' };
+    return { success: false, error: chrome.i18n.getMessage('error_noPageInfo') };
   }
 
   const { viewportHeight, viewportWidth, devicePixelRatio } = pageInfo;
@@ -201,12 +318,6 @@ async function captureFullPageImpl(tab) {
   // Step 2: Prepare (disable smooth scroll)
   await chrome.tabs.sendMessage(tab.id, { type: 'PREPARE_CAPTURE' });
 
-  // Best-effort: try to hide fixed/sticky elements (may fail on some sites)
-  // The overlap-and-clip approach is the primary defense against duplicates.
-  try {
-    // We'll hide after first frame capture (see below)
-  } catch (e) {}
-
   // Step 3: Scroll & capture loop
   const screenshots = [];
   let requestedScroll = 0;
@@ -217,7 +328,7 @@ async function captureFullPageImpl(tab) {
   chrome.runtime.sendMessage({
     type: 'CAPTURE_STATUS',
     status: 'scanning',
-    message: '正在截取页面...'
+    message: chrome.i18n.getMessage('status_capturing')
   }).catch(() => {});
 
   while (scrollCount < FULL_PAGE_CONFIG.MAX_SCROLLS) {
@@ -311,7 +422,7 @@ async function captureFullPageImpl(tab) {
   chrome.runtime.sendMessage({
     type: 'CAPTURE_STATUS',
     status: 'merging',
-    message: '正在合并截图...'
+    message: chrome.i18n.getMessage('status_merging')
   }).catch(() => {});
 
   const finalInfo = await chrome.tabs.sendMessage(tab.id, { type: 'GET_ACTUAL_SCROLL' });
@@ -410,11 +521,11 @@ async function startRegionSelect() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!tab) {
-      return { success: false, error: '无法获取当前标签页' };
+      return { success: false, error: chrome.i18n.getMessage('error_noTab') };
     }
 
     if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-      return { success: false, error: '无法截取浏览器内部页面' };
+      return { success: false, error: chrome.i18n.getMessage('error_internalPage') };
     }
 
     await chrome.scripting.executeScript({
@@ -425,7 +536,7 @@ async function startRegionSelect() {
     return { success: true };
   } catch (error) {
     console.error('Start region select error:', error);
-    return { success: false, error: error.message || '启动区域选择失败' };
+    return { success: false, error: error.message || chrome.i18n.getMessage('error_startRegionFailed') };
   }
 }
 
@@ -436,7 +547,7 @@ async function captureRegion(region) {
     const croppedDataUrl = await cropImage(dataUrl, region);
 
     const id = generateScreenshotId();
-    await chrome.storage.local.set({ [id]: croppedDataUrl });
+    await saveCaptureWithMetadata(id, croppedDataUrl, 'region');
 
     chrome.tabs.create({
       url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id
@@ -445,7 +556,7 @@ async function captureRegion(region) {
     return { success: true };
   } catch (error) {
     console.error('Capture region error:', error);
-    return { success: false, error: error.message || '区域截图失败' };
+    return { success: false, error: error.message || chrome.i18n.getMessage('error_regionFailed') };
   }
 }
 
