@@ -607,25 +607,13 @@ async function stopGifRecording() {
     return;
   }
 
-  // Scale down frames if region is large (max 800px width)
-  const maxWidth = 800;
-  let scaleWidth = gifRegion.width;
-  let scaleHeight = gifRegion.height;
-  if (scaleWidth > maxWidth) {
-    const scale = maxWidth / scaleWidth;
-    scaleWidth = maxWidth;
-    scaleHeight = Math.round(gifRegion.height * scale);
-  }
-
-  // Open GIF preview page with frame data
+  // Open GIF preview page with frame data at original resolution
   const id = generateScreenshotId();
   const gifData = {
     id,
     frames: gifFrames,
-    width: scaleWidth,
-    height: scaleHeight,
-    originalWidth: gifRegion.width,
-    originalHeight: gifRegion.height,
+    width: gifRegion.width,
+    height: gifRegion.height,
     fps: GIF_FPS,
     frameCount: gifFrames.length,
     duration: gifFrames.length / GIF_FPS

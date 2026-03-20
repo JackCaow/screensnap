@@ -987,11 +987,14 @@ class ScreenSnapPreview {
         return;
       }
 
-      const { frames, width, height, originalWidth, originalHeight, fps } = gifData;
-      const targetW = width;
-      const targetH = height;
+      const { frames, width, height, fps } = gifData;
 
-      // Encode GIF using GIFEncoder
+      // Use first frame's natural size for pixel-perfect encoding
+      const firstImg = await this._loadImageAsync(frames[0]);
+      const targetW = firstImg.width;
+      const targetH = firstImg.height;
+
+      // Encode GIF using GIFEncoder at actual frame resolution
       const encoder = new GIFEncoder(targetW, targetH);
       encoder.setDelay(Math.round(1000 / fps));
       encoder.setRepeat(0); // Loop forever
@@ -1000,16 +1003,17 @@ class ScreenSnapPreview {
       tempCanvas.width = targetW;
       tempCanvas.height = targetH;
       const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+      tempCtx.imageSmoothingEnabled = false; // Pixel-perfect, no blur
 
       for (let i = 0; i < frames.length; i++) {
-        // Update loading progress
         const pct = Math.round(((i + 1) / frames.length) * 100);
         this.loadingEl.querySelector('span').textContent =
           (i18n('gif_encodingProgress') || 'Encoding GIF... $1%').replace('$1', pct).replace('$PERCENT$', pct);
 
-        const img = await this._loadImageAsync(frames[i]);
+        const img = (i === 0) ? firstImg : await this._loadImageAsync(frames[i]);
         tempCtx.clearRect(0, 0, targetW, targetH);
-        tempCtx.drawImage(img, 0, 0, targetW, targetH);
+        // Draw at native resolution — no scaling
+        tempCtx.drawImage(img, 0, 0);
         const imageData = tempCtx.getImageData(0, 0, targetW, targetH);
         encoder.addFrame(imageData);
 
