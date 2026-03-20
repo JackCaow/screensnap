@@ -192,7 +192,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const index = (result.ss_index || []).filter(s => s.id !== id);
       await chrome.storage.local.set({ ss_index: index });
       await chrome.storage.local.remove([id, id + '_thumb', id + '_annotations']);
-    }).then(() => sendResponse({ success: true }));
+    }).then(() => sendResponse({ success: true }))
+      .catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
 });

@@ -1,12 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+
 :root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --bg: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text: #1e293b;
-  --text-secondary: #64748b;
-  --border: #e2e8f0;
-  --radius: 12px;
+  --surface: #f7fbf1;
+  --surface-container-low: #f0f5ea;
+  --surface-container: #eaf0e3;
+  --surface-container-high: #e2eadb;
+  --surface-container-highest: #dae3d3;
+  --surface-container-lowest: #ffffff;
+
+  --primary: #4d6547;
+  --primary-dim: #3d5339;
+  --primary-container: #ceebc4;
+  --on-primary: #ffffff;
+  --on-surface: #2c352a;
+  --on-surface-variant: #6b7a66;
+  --outline-variant: #a3b29e;
+
+  --tertiary: #61622c;
+  --error-container: #fd795a;
+
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --shadow-ambient: 0 20px 40px rgba(44, 53, 42, 0.06);
+  --shadow-soft: 0 8px 24px rgba(44, 53, 42, 0.04);
+  --transition: cubic-bezier(0.4, 0, 0.2, 1) 300ms;
 }
 
 * {
@@ -16,14 +35,14 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 14px;
-  color: var(--text);
-  background: var(--bg-secondary);
+  color: var(--on-surface);
+  background: var(--surface);
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 48px 24px;
 }
 
 .container {
@@ -31,39 +50,48 @@ body {
   max-width: 480px;
 }
 
+/* ── Header ── */
 .header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 14px;
+  margin-bottom: 36px;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 18px;
+  gap: 10px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 19px;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--primary);
 }
 
+.logo svg {
+  opacity: 0.85;
+}
+
 .subtitle {
-  font-size: 16px;
-  color: var(--text-secondary);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 15px;
+  color: var(--on-surface-variant);
   font-weight: 400;
 }
 
+/* ── Form ── */
 #settingsForm {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .form-group {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 20px;
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 18px 22px;
+  box-shadow: 0 1px 4px rgba(44, 53, 42, 0.03);
 }
 
 .form-label {
@@ -72,8 +100,8 @@ body {
   justify-content: space-between;
   font-weight: 600;
   font-size: 13px;
-  color: var(--text);
-  margin-bottom: 12px;
+  color: var(--on-surface);
+  margin-bottom: 14px;
 }
 
 .quality-value {
@@ -82,7 +110,7 @@ body {
   font-size: 13px;
 }
 
-/* Radio Group */
+/* ── Radio Group ── */
 .radio-group {
   display: flex;
   gap: 8px;
@@ -93,24 +121,25 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 8px 16px;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   font-size: 13px;
-  transition: all 0.15s;
+  transition: all var(--transition);
   user-select: none;
+  border: 1.5px solid transparent;
 }
 
 .radio-option:hover {
-  border-color: var(--primary);
+  background: var(--surface-container);
 }
 
 .radio-option:has(input:checked) {
-  background: #eef2ff;
-  border-color: var(--primary);
-  color: var(--primary);
+  background: var(--primary-container);
+  color: var(--primary-dim);
   font-weight: 600;
+  border-color: rgba(77, 101, 71, 0.15);
 }
 
 .radio-option input[type="radio"] {
@@ -120,17 +149,41 @@ body {
 .stroke-demo {
   width: 20px;
   background: currentColor;
-  border-radius: 1px;
+  border-radius: 2px;
 }
 
-/* Range Input */
+/* ── Select Input ── */
+.select-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface-container-highest);
+  border: 1.5px solid rgba(163, 178, 158, 0.15);
+  border-radius: var(--radius-lg);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 13px;
+  color: var(--on-surface);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.select-input:hover {
+  background: var(--surface-container-high);
+}
+
+.select-input:focus {
+  background: var(--surface-container-lowest);
+  border-color: rgba(77, 101, 71, 0.3);
+}
+
+/* ── Range Input ── */
 .range-input {
   width: 100%;
-  height: 6px;
+  height: 5px;
   -webkit-appearance: none;
   appearance: none;
-  background: var(--border);
-  border-radius: 3px;
+  background: var(--surface-container-high);
+  border-radius: var(--radius-full);
   outline: none;
 }
 
@@ -141,32 +194,43 @@ body {
   border-radius: 50%;
   background: var(--primary);
   cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 2.5px solid var(--surface-container-lowest);
+  box-shadow: 0 2px 8px rgba(44, 53, 42, 0.15);
+  transition: box-shadow var(--transition);
+}
+
+.range-input::-webkit-slider-thumb:hover {
+  box-shadow: 0 2px 12px rgba(44, 53, 42, 0.25);
 }
 
 .range-labels {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 6px;
+  color: var(--on-surface-variant);
+  margin-top: 8px;
+  opacity: 0.7;
 }
 
-/* Color Input */
+/* ── Color Input ── */
 .color-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .color-input {
-  width: 36px;
-  height: 36px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--surface-container-high);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  padding: 2px;
+  padding: 3px;
+  transition: border-color var(--transition);
+}
+
+.color-input:hover {
+  border-color: var(--primary);
 }
 
 .color-input::-webkit-color-swatch-wrapper {
@@ -175,16 +239,16 @@ body {
 
 .color-input::-webkit-color-swatch {
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .color-hex {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--on-surface-variant);
 }
 
-/* Toggle Switch */
+/* ── Toggle Switch ── */
 .toggle-label {
   display: flex;
   align-items: center;
@@ -201,25 +265,25 @@ body {
 
 .toggle-switch {
   position: relative;
-  width: 44px;
-  height: 24px;
-  background: var(--border);
-  border-radius: 12px;
-  transition: background 0.2s;
+  width: 46px;
+  height: 26px;
+  background: var(--surface-container-high);
+  border-radius: var(--radius-full);
+  transition: background var(--transition);
   flex-shrink: 0;
 }
 
 .toggle-switch::after {
   content: '';
   position: absolute;
-  width: 18px;
-  height: 18px;
-  background: white;
+  width: 20px;
+  height: 20px;
+  background: var(--surface-container-lowest);
   border-radius: 50%;
   top: 3px;
   left: 3px;
-  transition: transform 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: transform var(--transition);
+  box-shadow: 0 2px 6px rgba(44, 53, 42, 0.1);
 }
 
 .toggle-input:checked + .toggle-switch {
@@ -230,20 +294,21 @@ body {
   transform: translateX(20px);
 }
 
-/* Toast */
+/* ── Toast ── */
 .toast {
   position: fixed;
-  bottom: 24px;
+  bottom: 28px;
   left: 50%;
   transform: translateX(-50%);
-  background: #1e293b;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
+  background: var(--on-surface);
+  color: var(--surface);
+  padding: 10px 22px;
+  border-radius: var(--radius-full);
   font-size: 13px;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity var(--transition);
   pointer-events: none;
+  box-shadow: var(--shadow-ambient);
 }
 
 .toast.show {

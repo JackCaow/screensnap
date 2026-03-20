@@ -10,10 +10,12 @@
   <div class="container">
     <header class="header">
       <div class="logo">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-          <circle cx="12" cy="12" r="3" fill="currentColor"/>
-          <path d="M3 8h18" stroke="currentColor" stroke-width="2"/>
+        <!-- Logo: organic lens/aperture with leaf-like petals -->
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+          <path d="M18.5 5.5l-2 2M5.5 5.5l2 2M5.5 18.5l2-2M18.5 18.5l-2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
         </svg>
         <span>ScreenSnap</span>
       </div>
@@ -22,28 +24,41 @@
     <main class="main">
       <div class="button-group">
         <button id="captureRegion" class="btn btn-primary">
+          <!-- Region: organic crop frame with soft corners and crosshair center -->
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <rect x="8" y="8" width="8" height="8" rx="1" stroke="currentColor" stroke-width="2"/>
+            <path d="M4 8.5V6a2.5 2.5 0 012.5-2.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 15.5V18a2.5 2.5 0 002.5 2.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M15 3.5H17.5A2.5 2.5 0 0120 6v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M15 20.5H17.5A2.5 2.5 0 0020 18v-2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 8v1.5M12 14.5V16M8 12h1.5M14.5 12H16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
           </svg>
           <span data-i18n="popup_captureRegion">区域截图</span>
           <kbd class="shortcut">Alt+Shift+S</kbd>
         </button>
 
         <button id="captureVisible" class="btn btn-secondary">
+          <!-- Visible: rounded monitor with soft eye/scan motif -->
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-            <path d="M8 3v4M16 3v4M8 17v4M16 17v4M3 8h4M3 16h4M17 8h4M17 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="3" y="4" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 22h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 18v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7.5 11c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5-2 4.5-4.5 4.5S7.5 13.5 7.5 11z" stroke="currentColor" stroke-width="1.2" opacity="0.4"/>
+            <circle cx="12" cy="11" r="1.5" fill="currentColor" opacity="0.5"/>
           </svg>
           <span data-i18n="popup_captureVisible">截取可视区域</span>
           <kbd class="shortcut">Alt+Shift+A</kbd>
         </button>
 
         <button id="captureFullPage" class="btn btn-secondary">
+          <!-- Full page: tall scroll/parchment with gentle wave -->
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" stroke-width="2"/>
-            <path d="M8 6h8M8 10h8M8 14h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M12 18l3 3 3-3M15 21v-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 7h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+            <path d="M9 10.5h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.35"/>
+            <path d="M9 14h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.25"/>
+            <path d="M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M9.5 19l2.5 2 2.5-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <span data-i18n="popup_captureFullpage">长截屏</span>
           <kbd class="shortcut">Alt+Shift+F</kbd>
@@ -61,9 +76,11 @@
       </div>
 
       <div id="error" class="error hidden">
+        <!-- Error: soft organic warning circle -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M12 8.5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="12" cy="15.5" r="0.75" fill="currentColor"/>
         </svg>
         <span id="errorText"></span>
       </div>
@@ -73,10 +90,22 @@
       <span class="version">v1.1.0</span>
       <div class="footer-actions">
         <button id="openHistory" class="settings-btn" data-i18n-title="history_heading" title="History">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <!-- History: organic hourglass/time with flowing curves -->
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
         <button id="openSettings" class="settings-btn" data-i18n-title="options_title" title="Settings">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <!-- Settings: minimal sliders — organic, no gear teeth -->
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 7h3m4 0h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 12h9m4 0h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 17h5m4 0h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="9" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="15" cy="12" r="2" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="11" cy="17" r="2" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
         </button>
       </div>
     </footer>

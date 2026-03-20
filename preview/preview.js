@@ -676,7 +676,7 @@ class ScreenSnapPreview {
       this.saveAnnotations();
     });
     this.clearBtn.addEventListener('click', () => {
-      if (confirm(chrome.i18n.getMessage('confirm_clearAll'))) {
+      if (confirm(i18n('confirm_clearAll'))) {
         this.annotationTool.clear();
         this.saveAnnotations();
       }
@@ -906,7 +906,7 @@ class ScreenSnapPreview {
       this.screenshotId = urlParams.get('id');
 
       if (!this.screenshotId) {
-        this.showError(chrome.i18n.getMessage('error_noScreenshot'));
+        this.showError(i18n('error_noScreenshot'));
         return;
       }
 
@@ -914,7 +914,7 @@ class ScreenSnapPreview {
       const screenshotData = result[this.screenshotId];
 
       if (!screenshotData) {
-        this.showError(chrome.i18n.getMessage('error_screenshotExpired'));
+        this.showError(i18n('error_screenshotExpired'));
         return;
       }
 
@@ -943,13 +943,13 @@ class ScreenSnapPreview {
       };
 
       img.onerror = () => {
-        this.showError(chrome.i18n.getMessage('error_imageLoadFailed'));
+        this.showError(i18n('error_imageLoadFailed'));
       };
 
       img.src = screenshotData;
     } catch (error) {
       console.error('Load screenshot error:', error);
-      this.showError(chrome.i18n.getMessage('error_loadFailed'));
+      this.showError(i18n('error_loadFailed'));
     }
   }
 
@@ -997,9 +997,9 @@ class ScreenSnapPreview {
       saveAs: true
     }, (downloadId) => {
       if (chrome.runtime.lastError) {
-        this.showToast(chrome.i18n.getMessage('toast_saveFailed', chrome.runtime.lastError.message), false);
+        this.showToast(i18n('toast_saveFailed', chrome.runtime.lastError.message), false);
       } else {
-        this.showToast(chrome.i18n.getMessage('toast_saved'));
+        this.showToast(i18n('toast_saved'));
       }
     });
   }
@@ -1014,10 +1014,10 @@ class ScreenSnapPreview {
         new ClipboardItem({ 'image/png': blob })
       ]);
 
-      this.showToast(chrome.i18n.getMessage('toast_copied'));
+      this.showToast(i18n('toast_copied'));
     } catch (error) {
       console.error('Copy to clipboard error:', error);
-      this.showToast(chrome.i18n.getMessage('toast_copyFailed'), false);
+      this.showToast(i18n('toast_copyFailed'), false);
     }
   }
 
@@ -1080,7 +1080,8 @@ class ScreenSnapPreview {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await initI18n();
   applyI18n();
   new ScreenSnapPreview();
 });

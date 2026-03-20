@@ -1,17 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+
 :root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --secondary: #64748b;
-  --secondary-hover: #475569;
-  --bg: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text: #1e293b;
-  --text-secondary: #64748b;
-  --border: #e2e8f0;
-  --error: #ef4444;
-  --success: #22c55e;
-  --radius: 12px;
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  /* Tonal Atmosphere — "mature leaf in afternoon sun" */
+  --surface: #f7fbf1;
+  --surface-container-low: #f0f5ea;
+  --surface-container: #eaf0e3;
+  --surface-container-high: #e2eadb;
+  --surface-container-highest: #dae3d3;
+  --surface-container-lowest: #ffffff;
+
+  --primary: #4d6547;
+  --primary-dim: #3d5339;
+  --primary-container: #ceebc4;
+  --on-primary: #ffffff;
+  --on-surface: #2c352a;
+  --on-surface-variant: #6b7a66;
+  --outline-variant: #a3b29e;
+
+  --tertiary: #61622c;
+  --error-container: #fd795a;
+
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --shadow-ambient: 0 20px 40px rgba(44, 53, 42, 0.06);
+  --shadow-soft: 0 8px 24px rgba(44, 53, 42, 0.04);
+  --transition: cubic-bezier(0.4, 0, 0.2, 1) 300ms;
 }
 
 * {
@@ -21,20 +36,21 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 14px;
-  color: var(--text);
-  background: var(--bg);
-  min-width: 320px;
+  color: var(--on-surface);
+  background: var(--surface);
+  min-width: 340px;
 }
 
 .container {
-  padding: 20px;
+  padding: 28px 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
+/* ── Header ── */
 .header {
   display: flex;
   justify-content: center;
@@ -44,16 +60,20 @@ body {
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 18px;
-  font-weight: 600;
+  gap: 10px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--primary);
 }
 
 .logo svg {
   color: var(--primary);
+  opacity: 0.85;
 }
 
+/* ── Main ── */
 .main {
   display: flex;
   flex-direction: column;
@@ -63,21 +83,23 @@ body {
 .button-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
+/* ── Buttons — Soft Touchpoints ── */
 .btn {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 15px 20px;
   border: none;
-  border-radius: var(--radius);
-  font-size: 15px;
+  border-radius: var(--radius-xl);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 14.5px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition);
   outline: none;
   position: relative;
 }
@@ -88,69 +110,75 @@ body {
 }
 
 .shortcut {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
-  padding: 3px 6px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.1);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
   color: inherit;
-  opacity: 0.7;
-  font-family: -apple-system, BlinkMacSystemFont, monospace;
-}
-
-.btn-primary .shortcut {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.btn-secondary .shortcut {
-  background: var(--border);
+  opacity: 0.55;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  letter-spacing: 0.02em;
 }
 
 .btn:focus-visible {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 3px rgba(77, 101, 71, 0.2);
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
+/* Primary — gradient "Glass & Gradient" rule */
 .btn-primary {
-  background: var(--primary);
-  color: white;
+  background: linear-gradient(145deg, var(--primary), var(--primary-dim));
+  color: var(--on-primary);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-primary .shortcut {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-hover);
+  box-shadow: var(--shadow-ambient);
   transform: translateY(-1px);
-  box-shadow: var(--shadow);
+  filter: brightness(1.06);
 }
 
 .btn-primary:active:not(:disabled) {
   transform: translateY(0);
+  filter: brightness(0.97);
 }
 
+/* Secondary — "Soft Lift" tonal layering, no borders */
 .btn-secondary {
-  background: var(--bg-secondary);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  box-shadow: 0 1px 4px rgba(44, 53, 42, 0.03);
+}
+
+.btn-secondary .shortcut {
+  background: var(--surface-container-high);
+  opacity: 0.65;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--border);
+  background: var(--surface-container-low);
   transform: translateY(-1px);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-soft);
 }
 
 .btn-secondary:active:not(:disabled) {
   transform: translateY(0);
+  background: var(--surface-container);
 }
 
+/* ── Status ── */
 .status {
-  padding: 16px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  padding: 16px 20px;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-xl);
 }
 
 .status-content {
@@ -158,49 +186,48 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: var(--text-secondary);
+  color: var(--on-surface-variant);
+  font-size: 13px;
 }
 
 .spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--surface-container-high);
   border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .progress-bar {
   margin-top: 12px;
-  height: 6px;
-  background: var(--border);
-  border-radius: 3px;
+  height: 5px;
+  background: var(--surface-container);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--primary);
-  border-radius: 3px;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, var(--primary), var(--primary-container));
+  border-radius: var(--radius-full);
+  transition: width 0.4s var(--transition);
   width: 0%;
 }
 
+/* ── Error — soft, not alarming ── */
 .error {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: var(--radius);
-  color: var(--error);
+  gap: 10px;
+  padding: 13px 18px;
+  background: rgba(253, 121, 90, 0.08);
+  border-radius: var(--radius-xl);
+  color: #b5452c;
   font-size: 13px;
 }
 
@@ -208,39 +235,43 @@ body {
   display: none !important;
 }
 
+/* ── Footer — no border-top, use spacing ── */
 .footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  padding-top: 4px;
 }
 
 .footer-actions {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .version {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 11.5px;
+  color: var(--on-surface-variant);
+  opacity: 0.6;
+  letter-spacing: 0.01em;
 }
 
 .settings-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
-  background: none;
-  color: var(--text-secondary);
-  border-radius: 6px;
+  background: transparent;
+  color: var(--on-surface-variant);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition);
+  opacity: 0.6;
 }
 
 .settings-btn:hover {
-  background: var(--bg-secondary);
+  background: var(--surface-container);
   color: var(--primary);
+  opacity: 1;
 }

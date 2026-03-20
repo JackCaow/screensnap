@@ -40,7 +40,7 @@ class ScreenSnapPopup {
   }
 
   t(key, ...subs) {
-    return chrome.i18n.getMessage(key, subs) || key;
+    return i18n(key, ...subs);
   }
 
   setLoading(loading, text) {
@@ -158,7 +158,8 @@ class ScreenSnapPopup {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await initI18n();
   applyI18n();
   new ScreenSnapPopup();
 });
