@@ -556,9 +556,7 @@ class ScreenSnapPreview {
 
     this.screenshotId = null;
     this.isGifMode = false;
-    this.isVideoMode = false;
     this.gifDataUrl = null;
-    this.videoDataUrl = null;
     this.zoom = 1;           // 1 = actual pixel size
     this.fitWidthZoom = 1;   // calculated on load
     this.fitViewZoom = 1;    // calculated on load
@@ -922,7 +920,7 @@ class ScreenSnapPreview {
         return;
       }
 
-      // Check if this is a saved GIF or video (type in index)
+      // Check if this is a saved GIF (type in index)
       const indexResult = await chrome.storage.local.get('ss_index');
       const index = indexResult.ss_index || [];
       const meta = index.find(s => s.id === this.screenshotId);
@@ -930,11 +928,6 @@ class ScreenSnapPreview {
         await this.loadSavedGif(this.screenshotId);
         return;
       }
-      if (meta && meta.type === 'video') {
-        await this.loadSavedVideo(this.screenshotId);
-        return;
-      }
-
       const result = await chrome.storage.local.get([this.screenshotId, this.screenshotId + '_annotations']);
       const screenshotData = result[this.screenshotId];
 
@@ -1103,63 +1096,6 @@ class ScreenSnapPreview {
     this.imageInfoEl.textContent = `GIF · ${width} × ${height} px · ${this.formatSize(sizeKB)}`;
   }
 
-  // ==================== Video Handling ====================
-
-  async loadSavedVideo(id) {
-    this.isVideoMode = true;
-    try {
-      const result = await chrome.storage.local.get(id);
-      const videoDataUrl = result[id];
-      if (!videoDataUrl) {
-        this.showError(i18n('error_screenshotExpired'));
-        return;
-      }
-      this.videoDataUrl = videoDataUrl;
-      this._displayVideo(videoDataUrl);
-    } catch (error) {
-      this.showError(i18n('error_loadFailed'));
-    }
-  }
-
-  _displayVideo(dataUrl) {
-    this.canvas.classList.add('hidden');
-    this.loadingEl.classList.add('hidden');
-
-    // Disable annotation toolbar for video
-    this.toolbar.style.opacity = '0.3';
-    this.toolbar.style.pointerEvents = 'none';
-
-    const container = document.createElement('div');
-    container.className = 'video-preview-container';
-    container.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;';
-
-    const video = document.createElement('video');
-    video.src = dataUrl;
-    video.controls = true;
-    video.autoplay = true;
-    video.loop = true;
-    video.style.cssText = 'max-width:100%; max-height:70vh; border-radius:8px; box-shadow: 0 8px 24px rgba(44,53,42,0.08);';
-    container.appendChild(video);
-
-    // Show file size
-    video.addEventListener('loadedmetadata', () => {
-      const base64Len = dataUrl.split(',')[1]?.length || 0;
-      const sizeKB = Math.round((base64Len * 3 / 4) / 1024);
-      const w = video.videoWidth;
-      const h = video.videoHeight;
-      const dur = video.duration;
-
-      const info = document.createElement('div');
-      info.style.cssText = 'font-size:13px; color:var(--on-surface-variant); opacity:0.7;';
-      info.textContent = `WebM \u00B7 ${w}\u00D7${h} \u00B7 ${dur.toFixed(1)}s \u00B7 ${this.formatSize(sizeKB)}`;
-      container.appendChild(info);
-
-      this.imageInfoEl.textContent = `WebM \u00B7 ${w} \u00D7 ${h} px \u00B7 ${dur.toFixed(1)}s \u00B7 ${this.formatSize(sizeKB)}`;
-    });
-
-    this.canvasWrapper.appendChild(container);
-  }
-
   _loadImageAsync(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -1210,23 +1146,6 @@ class ScreenSnapPreview {
   async download() {
     const timestamp = this.getTimestamp();
 
-    // Video mode: download the WebM directly
-    if (this.isVideoMode && this.videoDataUrl) {
-      const filename = `screensnap_${timestamp}.webm`;
-      chrome.downloads.download({
-        url: this.videoDataUrl,
-        filename: filename,
-        saveAs: true
-      }, (downloadId) => {
-        if (chrome.runtime.lastError) {
-          this.showToast(i18n('toast_saveFailed', chrome.runtime.lastError.message), false);
-        } else {
-          this.showToast(i18n('toast_saved'));
-        }
-      });
-      return;
-    }
-
     // GIF mode: download the GIF directly
     if (this.isGifMode && this.gifDataUrl) {
       const filename = `screensnap_${timestamp}.gif`;
@@ -1266,12 +1185,6 @@ class ScreenSnapPreview {
 
   async copyToClipboard() {
     try {
-      // Video mode: copy is not supported, show message
-      if (this.isVideoMode) {
-        this.showToast(i18n('video_copyNotSupported') || 'Video cannot be copied to clipboard', false);
-        return;
-      }
-
       // GIF mode: copy first frame as PNG (GIF not supported in clipboard)
       if (this.isGifMode && this.gifDataUrl) {
         const img = await this._loadImageAsync(this.gifDataUrl);

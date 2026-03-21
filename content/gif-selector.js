@@ -1,6 +1,8 @@
 /**
  * ScreenSnap GIF Region Selector & Recording Controller
  * Allows users to select a region and record it as an animated GIF
+ *
+ * Design: Living Canvas — organic green tones, soft radii
  */
 
 (() => {
@@ -21,32 +23,33 @@
         position: fixed;
         top: 0; left: 0;
         width: 100vw; height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
+        background: transparent;
         z-index: 2147483647;
         cursor: crosshair;
         user-select: none;
       }
       #screensnap-gif-selection {
         position: absolute;
-        border: 2px solid #ef4444;
+        border: 2px solid #8cb485;
         background: transparent;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 0 9999px rgba(26, 33, 24, 0.55);
         cursor: move;
+        border-radius: 4px;
       }
       #screensnap-gif-selection.recording {
-        border-color: #ef4444;
-        animation: gif-pulse 1s ease-in-out infinite;
+        border-color: #fd795a;
+        animation: gif-pulse 1.2s ease-in-out infinite;
       }
       @keyframes gif-pulse {
-        0%, 100% { border-color: #ef4444; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); }
-        50% { border-color: #ff6b6b; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 20px rgba(239, 68, 68, 0.3); }
+        0%, 100% { border-color: #fd795a; box-shadow: 0 0 0 9999px rgba(26, 33, 24, 0.55); }
+        50% { border-color: #ff9a7a; box-shadow: 0 0 0 9999px rgba(26, 33, 24, 0.55), 0 0 20px rgba(253, 121, 90, 0.25); }
       }
       .gif-resize-handle {
         position: absolute;
         width: 10px; height: 10px;
-        background: #ef4444;
-        border: 2px solid white;
-        border-radius: 2px;
+        background: #8cb485;
+        border: 2px solid #e4ece1;
+        border-radius: 3px;
       }
       .gif-resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
       .gif-resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
@@ -54,45 +57,48 @@
       .gif-resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
       #screensnap-gif-size {
         position: absolute;
-        background: #ef4444;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
+        background: rgba(42, 53, 40, 0.9);
+        color: #e4ece1;
+        padding: 4px 10px;
+        border-radius: 8px;
         font-size: 12px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
         white-space: nowrap;
         pointer-events: none;
+        backdrop-filter: blur(8px);
       }
       #screensnap-gif-toolbar {
         position: absolute;
         display: flex;
         gap: 8px;
         align-items: center;
-        background: #1e293b;
+        background: rgba(42, 53, 40, 0.92);
         padding: 8px 12px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(10, 14, 9, 0.25);
         transform: translateX(-50%);
+        backdrop-filter: blur(12px);
       }
       #screensnap-gif-toolbar button {
-        padding: 8px 16px;
+        padding: 8px 18px;
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all cubic-bezier(0.4, 0, 0.2, 1) 200ms;
         display: flex;
         align-items: center;
         gap: 6px;
+        font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
       }
       #screensnap-gif-toolbar .record-btn {
-        background: #ef4444;
-        color: white;
+        background: linear-gradient(145deg, #4d6547, #3d5339);
+        color: #ffffff;
       }
-      #screensnap-gif-toolbar .record-btn:hover { background: #dc2626; }
+      #screensnap-gif-toolbar .record-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
       #screensnap-gif-toolbar .record-btn.recording {
-        background: #dc2626;
+        background: #fd795a;
         animation: rec-blink 1s ease-in-out infinite;
       }
       @keyframes rec-blink {
@@ -100,13 +106,13 @@
         50% { opacity: 0.7; }
       }
       #screensnap-gif-toolbar .cancel-btn {
-        background: #475569;
-        color: white;
+        background: rgba(155, 170, 150, 0.15);
+        color: #e4ece1;
       }
-      #screensnap-gif-toolbar .cancel-btn:hover { background: #64748b; }
+      #screensnap-gif-toolbar .cancel-btn:hover { background: rgba(155, 170, 150, 0.25); }
       .gif-timer {
-        color: white;
-        font-family: 'SF Mono', monospace;
+        color: #e4ece1;
+        font-family: 'SF Mono', 'Fira Code', monospace;
         font-size: 14px;
         min-width: 36px;
         text-align: center;
@@ -114,20 +120,22 @@
       .gif-rec-dot {
         width: 8px; height: 8px;
         border-radius: 50%;
-        background: #ef4444;
+        background: #8cb485;
         display: inline-block;
       }
+      .gif-rec-dot.active { background: #fd795a; }
       #screensnap-gif-hint {
         position: fixed;
         top: 20px; left: 50%;
         transform: translateX(-50%);
-        background: #1e293b;
-        color: white;
+        background: rgba(42, 53, 40, 0.92);
+        color: #e4ece1;
         padding: 12px 24px;
-        border-radius: 8px;
+        border-radius: 14px;
         font-size: 14px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+        box-shadow: 0 8px 24px rgba(10, 14, 9, 0.25);
+        backdrop-filter: blur(12px);
       }
     </style>
     <div id="screensnap-gif-hint">${chrome.i18n.getMessage('gif_selectHint') || 'Drag to select recording area'}</div>
@@ -172,7 +180,7 @@
     selection.style.width = w + 'px';
     selection.style.height = h + 'px';
     selectionRect = { x: left, y: top, width: w, height: h };
-    sizeLabel.textContent = `${Math.round(w)} × ${Math.round(h)}`;
+    sizeLabel.textContent = `${Math.round(w)} \u00D7 ${Math.round(h)}`;
     sizeLabel.style.left = left + 'px';
     sizeLabel.style.top = (top < 35 ? top + h + 8 : top - 30) + 'px';
   }
@@ -234,22 +242,27 @@
     // Hide resize handles during recording
     selection.querySelectorAll('.gif-resize-handle').forEach(h => h.style.display = 'none');
 
+    // Remove selection shadow so it doesn't darken the captured content
+    selection.style.boxShadow = 'none';
+
     // Make overlay click-through except toolbar
     overlay.style.pointerEvents = 'none';
     if (toolbar) toolbar.style.pointerEvents = 'auto';
 
     const recordBtn = toolbar.querySelector('.record-btn');
     recordBtn.classList.add('recording');
-    recordBtn.innerHTML = `<span class="gif-rec-dot"></span> ${chrome.i18n.getMessage('gif_stop') || 'Stop'}`;
+    recordBtn.innerHTML = `<span class="gif-rec-dot active"></span> ${chrome.i18n.getMessage('gif_stop') || 'Stop'}`;
 
+    // Inset crop region by border width so the selection border is not captured
+    const border = 2;
     const dpr = window.devicePixelRatio || 1;
     chrome.runtime.sendMessage({
       type: 'START_GIF_RECORDING',
       region: {
-        x: Math.round(selectionRect.x * dpr),
-        y: Math.round(selectionRect.y * dpr),
-        width: Math.round(selectionRect.width * dpr),
-        height: Math.round(selectionRect.height * dpr)
+        x: Math.round((selectionRect.x + border) * dpr),
+        y: Math.round((selectionRect.y + border) * dpr),
+        width: Math.round((selectionRect.width - border * 2) * dpr),
+        height: Math.round((selectionRect.height - border * 2) * dpr)
       },
       maxDuration: MAX_DURATION
     });

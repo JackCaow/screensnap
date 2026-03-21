@@ -82,7 +82,7 @@ class ScreenSnapHistory {
         && !key.endsWith('_annotations') && !key.endsWith('_thumb')) {
         const val = all[key];
         // Quick prefix check — only verify it looks like a data URL, don't load full blob
-        if (typeof val !== 'string' || !(val.startsWith('data:image') || val.startsWith('data:video'))) continue;
+        if (typeof val !== 'string' || !val.startsWith('data:image')) continue;
 
         index.push({
           id: key,
@@ -266,8 +266,7 @@ class ScreenSnapHistory {
       visible: this.t('history_typeVisible'),
       fullpage: this.t('history_typeFullpage'),
       region: this.t('history_typeRegion'),
-      gif: this.t('history_typeGif'),
-      video: this.t('history_typeVideo')
+      gif: this.t('history_typeGif')
     };
     return labels[type] || type;
   }

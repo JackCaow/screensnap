@@ -158,16 +158,5 @@
   "gif_encoding": { "message": "正在编码 GIF..." },
   "gif_encodingProgress": { "message": "正在编码 GIF... $PERCENT$%", "placeholders": { "PERCENT": { "content": "$1" } } },
   "gif_encodingFailed": { "message": "GIF 编码失败" },
-  "gif_noFrames": { "message": "未找到 GIF 帧数据" },
-
-  "cmd_captureVideo": { "message": "录制视频" },
-  "popup_captureVideo": { "message": "录制视频" },
-  "video_selectHint": { "message": "拖拽选择录制区域，或点击「录制整页」捕获完整标签页" },
-  "video_record": { "message": "录制" },
-  "video_stop": { "message": "停止" },
-  "video_recordFullTab": { "message": "录制整页" },
-  "video_startFailed": { "message": "启动视频录制失败" },
-  "video_copyNotSupported": { "message": "视频无法复制到剪贴板" },
-  "history_typeVideo": { "message": "视频" },
-  "history_filterVideo": { "message": "视频" }
+  "gif_noFrames": { "message": "未找到 GIF 帧数据" }
 }

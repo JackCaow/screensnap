@@ -158,16 +158,5 @@
   "gif_encoding": { "message": "Encoding GIF..." },
   "gif_encodingProgress": { "message": "Encoding GIF... $PERCENT$%", "placeholders": { "PERCENT": { "content": "$1" } } },
   "gif_encodingFailed": { "message": "GIF encoding failed" },
-  "gif_noFrames": { "message": "No GIF frames found" },
-
-  "cmd_captureVideo": { "message": "Record Video" },
-  "popup_captureVideo": { "message": "Record Video" },
-  "video_selectHint": { "message": "Drag to select area, or click Record to capture full tab" },
-  "video_record": { "message": "Record" },
-  "video_stop": { "message": "Stop" },
-  "video_recordFullTab": { "message": "Record Full Tab" },
-  "video_startFailed": { "message": "Failed to start video recording" },
-  "video_copyNotSupported": { "message": "Video cannot be copied to clipboard" },
-  "history_typeVideo": { "message": "Video" },
-  "history_filterVideo": { "message": "Video" }
+  "gif_noFrames": { "message": "No GIF frames found" }
 }

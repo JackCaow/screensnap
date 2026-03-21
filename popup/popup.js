@@ -9,7 +9,6 @@ class ScreenSnapPopup {
     this.captureVisibleBtn = document.getElementById('captureVisible');
     this.captureFullPageBtn = document.getElementById('captureFullPage');
     this.captureGifBtn = document.getElementById('captureGif');
-    this.captureVideoBtn = document.getElementById('captureVideo');
     this.statusEl = document.getElementById('status');
     this.statusTextEl = document.getElementById('statusText');
     this.progressBarEl = document.getElementById('progressBar');
@@ -26,7 +25,6 @@ class ScreenSnapPopup {
     this.captureVisibleBtn.addEventListener('click', () => this.captureVisible());
     this.captureFullPageBtn.addEventListener('click', () => this.captureFullPage());
     this.captureGifBtn.addEventListener('click', () => this.captureGif());
-    this.captureVideoBtn.addEventListener('click', () => this.captureVideo());
 
     document.getElementById('openSettings').addEventListener('click', () => {
       chrome.runtime.openOptionsPage();
@@ -63,29 +61,12 @@ class ScreenSnapPopup {
     }
   }
 
-  async captureVideo() {
-    if (this.isCapturing) return;
-    try {
-      const response = await chrome.runtime.sendMessage({
-        type: 'START_VIDEO_SELECT'
-      });
-      if (!response.success) {
-        this.showError(response.error || this.t('video_startFailed'));
-        return;
-      }
-      window.close();
-    } catch (error) {
-      this.showError(error.message || this.t('video_startFailed'));
-    }
-  }
-
   setLoading(loading, text) {
     this.isCapturing = loading;
     this.captureRegionBtn.disabled = loading;
     this.captureVisibleBtn.disabled = loading;
     this.captureFullPageBtn.disabled = loading;
     this.captureGifBtn.disabled = loading;
-    this.captureVideoBtn.disabled = loading;
 
     if (loading) {
       this.statusEl.classList.remove('hidden');

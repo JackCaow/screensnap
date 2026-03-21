@@ -10,9 +10,7 @@
     "storage",
     "unlimitedStorage",
     "downloads",
-    "contextMenus",
-    "tabCapture",
-    "offscreen"
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -62,13 +60,6 @@
         "mac": "Alt+Shift+G"
       },
       "description": "__MSG_cmd_captureGif__"
-    },
-    "capture-video": {
-      "suggested_key": {
-        "default": "Alt+Shift+V",
-        "mac": "Alt+Shift+V"
-      },
-      "description": "__MSG_cmd_captureVideo__"
     }
   }
 }

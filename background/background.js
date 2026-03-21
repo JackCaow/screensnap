@@ -105,9 +105,6 @@ async function captureAndOpenPreview(type) {
   } else if (type === 'capture-gif') {
     await startGifSelect();
     return;
-  } else if (type === 'capture-video') {
-    await startVideoSelect();
-    return;
   } else if (type === 'capture-visible') {
     result = await captureVisibleTab();
   } else if (type === 'capture-fullpage') {
@@ -149,11 +146,6 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'capture-gif',
     title: chrome.i18n.getMessage('cmd_captureGif'),
-    contexts: ['page', 'image', 'selection']
-  });
-  chrome.contextMenus.create({
-    id: 'capture-video',
-    title: chrome.i18n.getMessage('cmd_captureVideo'),
     contexts: ['page', 'image', 'selection']
   });
 });
@@ -224,27 +216,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await saveCaptureWithMetadata(id, message.dataUrl, 'gif');
       sendResponse({ success: true, id });
     })();
-    return true;
-  }
-
-  if (message.type === 'START_VIDEO_SELECT') {
-    startVideoSelect().then(sendResponse);
-    return true;
-  }
-
-  if (message.type === 'START_VIDEO_RECORDING') {
-    (async () => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab) {
-        await startVideoRecording(message.region, tab.id);
-      }
-      sendResponse({ success: true });
-    })();
-    return true;
-  }
-
-  if (message.type === 'STOP_VIDEO_RECORDING') {
-    stopVideoRecording().then(sendResponse).catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
 
@@ -718,147 +689,6 @@ async function captureRegion(region) {
     console.error('Capture region error:', error);
     return { success: false, error: error.message || chrome.i18n.getMessage('error_regionFailed') };
   }
-}
-
-// ==================== Video Recording ====================
-
-let videoRecording = false;
-let videoTabId = null;
-
-async function startVideoSelect() {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) return { success: false, error: chrome.i18n.getMessage('error_noTab') };
-    if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-      return { success: false, error: chrome.i18n.getMessage('error_internalPage') };
-    }
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content/video-selector.js']
-    });
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-async function ensureOffscreenDocument() {
-  const existingContexts = await chrome.runtime.getContexts({
-    contextTypes: ['OFFSCREEN_DOCUMENT']
-  });
-  if (existingContexts.length > 0) return;
-
-  await chrome.offscreen.createDocument({
-    url: 'offscreen/offscreen.html',
-    reasons: ['USER_MEDIA'],
-    justification: 'Recording tab video via MediaRecorder'
-  });
-}
-
-async function startVideoRecording(region, tabId) {
-  videoRecording = true;
-  videoTabId = tabId;
-  startKeepAlive();
-
-  try {
-    // Get a MediaStream ID for the tab
-    const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tabId });
-
-    // Ensure offscreen document is available
-    await ensureOffscreenDocument();
-
-    // Tell offscreen document to start recording
-    await chrome.runtime.sendMessage({
-      type: 'OFFSCREEN_START_RECORDING',
-      streamId,
-      region: region || null,
-      tabWidth: region ? undefined : undefined,
-      tabHeight: region ? undefined : undefined
-    });
-  } catch (e) {
-    console.error('Failed to start video recording:', e);
-    videoRecording = false;
-    stopKeepAlive();
-    throw e;
-  }
-}
-
-async function stopVideoRecording() {
-  videoRecording = false;
-  stopKeepAlive();
-
-  try {
-    const response = await chrome.runtime.sendMessage({
-      type: 'OFFSCREEN_STOP_RECORDING'
-    });
-
-    if (!response?.success) {
-      return { success: false, error: response?.error || 'Stop recording failed' };
-    }
-
-    const dataUrl = response.dataUrl;
-    const id = generateScreenshotId();
-
-    // Save video with metadata
-    await saveVideoWithMetadata(id, dataUrl);
-
-    // Open preview
-    chrome.tabs.create({
-      url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id
-    });
-
-    // Close offscreen document
-    try { await chrome.offscreen.closeDocument(); } catch (e) { /* ignore */ }
-
-    return { success: true, id };
-  } catch (e) {
-    try { await chrome.offscreen.closeDocument(); } catch (e2) { /* ignore */ }
-    return { success: false, error: e.message };
-  }
-}
-
-function saveVideoWithMetadata(id, dataUrl) {
-  return withIndexLock(async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
-
-    // Generate a thumbnail from the first frame of the video
-    let thumbDataUrl = null;
-    try {
-      const videoThumb = await captureWithRetry();
-      const thumbResult = await generateThumbnail(videoThumb);
-      thumbDataUrl = thumbResult.thumbDataUrl;
-    } catch (e) { /* no thumbnail */ }
-
-    const meta = {
-      id,
-      timestamp: Date.now(),
-      url: tab?.url || '',
-      title: tab?.title || '',
-      type: 'video',
-      width: 0,
-      height: 0,
-      thumbnailId: id + '_thumb'
-    };
-
-    const store = { [id]: dataUrl };
-    if (thumbDataUrl) store[id + '_thumb'] = thumbDataUrl;
-
-    const result = await chrome.storage.local.get('ss_index');
-    const index = result.ss_index || [];
-    index.unshift(meta);
-
-    const removed = index.splice(MAX_HISTORY);
-    store.ss_index = index;
-    await chrome.storage.local.set(store);
-
-    if (removed.length > 0) {
-      const keysToRemove = [];
-      for (const item of removed) {
-        keysToRemove.push(item.id, item.id + '_thumb', item.id + '_annotations');
-      }
-      await chrome.storage.local.remove(keysToRemove);
-    }
-  });
 }
 
 // ==================== Region Capture (image) ====================
