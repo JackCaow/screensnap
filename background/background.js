@@ -102,6 +102,9 @@ async function captureAndOpenPreview(type) {
   if (type === 'capture-region') {
     await startRegionSelect();
     return;
+  } else if (type === 'capture-gif') {
+    await startGifSelect();
+    return;
   } else if (type === 'capture-visible') {
     result = await captureVisibleTab();
   } else if (type === 'capture-fullpage') {
@@ -140,6 +143,11 @@ chrome.runtime.onInstalled.addListener(() => {
     title: chrome.i18n.getMessage('cmd_captureFullpage'),
     contexts: ['page', 'image', 'selection']
   });
+  chrome.contextMenus.create({
+    id: 'capture-gif',
+    title: chrome.i18n.getMessage('cmd_captureGif'),
+    contexts: ['page', 'image', 'selection']
+  });
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -175,6 +183,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       chrome.tabs.create({
         url: chrome.runtime.getURL('preview/preview.html') + '?id=' + id
       });
+      sendResponse({ success: true, id });
+    })();
+    return true;
+  }
+
+  if (message.type === 'START_GIF_SELECT') {
+    startGifSelect().then(sendResponse);
+    return true;
+  }
+
+  if (message.type === 'START_GIF_RECORDING') {
+    (async () => {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        await startGifRecording(message.region, tab.id);
+      }
+      sendResponse({ success: true });
+    })();
+    return true;
+  }
+
+  if (message.type === 'STOP_GIF_RECORDING') {
+    stopGifRecording();
+    sendResponse({ success: true });
+    return true;
+  }
+
+  if (message.type === 'SAVE_GIF') {
+    (async () => {
+      const id = message.id || generateScreenshotId();
+      await saveCaptureWithMetadata(id, message.dataUrl, 'gif');
       sendResponse({ success: true, id });
     })();
     return true;
@@ -515,7 +554,98 @@ function blobToDataUrl(blob) {
   });
 }
 
+// ==================== GIF Recording ====================
+
+let gifRecording = false;
+let gifFrames = [];
+let gifRegion = null;
+let gifTabId = null;
+let gifCaptureInterval = null;
+const GIF_FPS = 8;
+const GIF_MAX_FRAMES = 15 * GIF_FPS; // 15s max
+
+async function startGifRecording(region, tabId) {
+  gifRecording = true;
+  gifFrames = [];
+  gifRegion = region;
+  gifTabId = tabId;
+  startKeepAlive();
+
+  const frameDelay = 1000 / GIF_FPS;
+
+  gifCaptureInterval = setInterval(async () => {
+    if (!gifRecording || gifFrames.length >= GIF_MAX_FRAMES) {
+      stopGifRecording();
+      return;
+    }
+    try {
+      const dataUrl = await chrome.tabs.captureVisibleTab(null, {
+        format: 'png',
+        quality: 100
+      });
+      // Crop to region
+      const cropped = await cropImage(dataUrl, gifRegion);
+      gifFrames.push(cropped);
+    } catch (e) {
+      // Skip frame on capture error (rate limit, etc.)
+      console.warn('GIF frame capture skipped:', e.message);
+    }
+  }, frameDelay);
+}
+
+async function stopGifRecording() {
+  gifRecording = false;
+  if (gifCaptureInterval) {
+    clearInterval(gifCaptureInterval);
+    gifCaptureInterval = null;
+  }
+  stopKeepAlive();
+
+  if (gifFrames.length < 2) {
+    console.warn('GIF recording too short, discarded');
+    gifFrames = [];
+    return;
+  }
+
+  // Open GIF preview page with frame data at original resolution
+  const id = generateScreenshotId();
+  const gifData = {
+    id,
+    frames: gifFrames,
+    width: gifRegion.width,
+    height: gifRegion.height,
+    fps: GIF_FPS,
+    frameCount: gifFrames.length,
+    duration: gifFrames.length / GIF_FPS
+  };
+
+  // Store frames temporarily for the preview page to pick up
+  await chrome.storage.local.set({ _gif_pending: gifData });
+  gifFrames = [];
+
+  chrome.tabs.create({
+    url: chrome.runtime.getURL('preview/preview.html') + '?gif=' + id
+  });
+}
+
 // ==================== Region Capture ====================
+
+async function startGifSelect() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return { success: false, error: chrome.i18n.getMessage('error_noTab') };
+    if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+      return { success: false, error: chrome.i18n.getMessage('error_internalPage') };
+    }
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content/gif-selector.js']
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
 
 async function startRegionSelect() {
   try {
@@ -560,6 +690,8 @@ async function captureRegion(region) {
     return { success: false, error: error.message || chrome.i18n.getMessage('error_regionFailed') };
   }
 }
+
+// ==================== Region Capture (image) ====================
 
 async function cropImage(dataUrl, region) {
   const img = await loadImage(dataUrl);

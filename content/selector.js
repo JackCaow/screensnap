@@ -2,6 +2,8 @@
  * ScreenSnap Region Selector
  * Allows users to select a specific region of the page to capture
  * Supports dragging to move and resize the selection
+ *
+ * Design: Living Canvas — organic green tones, soft radii, no harsh edges
  */
 
 (() => {
@@ -18,17 +20,18 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
+        background: transparent;
         z-index: 2147483647;
         cursor: crosshair;
         user-select: none;
       }
       #screensnap-selection {
         position: absolute;
-        border: 2px solid #6366f1;
+        border: 2px solid #8cb485;
         background: transparent;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 0 9999px rgba(26, 33, 24, 0.55);
         cursor: move;
+        border-radius: 4px;
       }
       #screensnap-selection.resizing {
         cursor: crosshair;
@@ -37,9 +40,9 @@
         position: absolute;
         width: 10px;
         height: 10px;
-        background: #6366f1;
-        border: 2px solid white;
-        border-radius: 2px;
+        background: #8cb485;
+        border: 2px solid #e4ece1;
+        border-radius: 3px;
       }
       .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
       .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
@@ -51,59 +54,64 @@
       .resize-handle.e { top: 50%; right: -5px; transform: translateY(-50%); cursor: e-resize; }
       #screensnap-size {
         position: absolute;
-        background: #6366f1;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
+        background: rgba(42, 53, 40, 0.9);
+        color: #e4ece1;
+        padding: 4px 10px;
+        border-radius: 8px;
         font-size: 12px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
         white-space: nowrap;
         pointer-events: none;
+        backdrop-filter: blur(8px);
       }
       #screensnap-toolbar {
         position: absolute;
         display: flex;
         gap: 8px;
-        background: #1e293b;
+        background: rgba(42, 53, 40, 0.92);
         padding: 8px 12px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(10, 14, 9, 0.25);
+        backdrop-filter: blur(12px);
       }
       #screensnap-toolbar button {
-        padding: 8px 16px;
+        padding: 8px 18px;
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all cubic-bezier(0.4, 0, 0.2, 1) 200ms;
+        font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
       }
       #screensnap-toolbar .confirm {
-        background: #6366f1;
-        color: white;
+        background: linear-gradient(145deg, #4d6547, #3d5339);
+        color: #ffffff;
       }
       #screensnap-toolbar .confirm:hover {
-        background: #4f46e5;
+        filter: brightness(1.1);
+        transform: translateY(-1px);
       }
       #screensnap-toolbar .cancel {
-        background: #475569;
-        color: white;
+        background: rgba(155, 170, 150, 0.15);
+        color: #e4ece1;
       }
       #screensnap-toolbar .cancel:hover {
-        background: #64748b;
+        background: rgba(155, 170, 150, 0.25);
       }
       #screensnap-hint {
         position: fixed;
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background: #1e293b;
-        color: white;
+        background: rgba(42, 53, 40, 0.92);
+        color: #e4ece1;
         padding: 12px 24px;
-        border-radius: 8px;
+        border-radius: 14px;
         font-size: 14px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+        box-shadow: 0 8px 24px rgba(10, 14, 9, 0.25);
+        backdrop-filter: blur(12px);
       }
     </style>
     <div id="screensnap-hint">${chrome.i18n.getMessage('selector_hint')}</div>
@@ -161,7 +169,7 @@
 
     selectionRect = { x: left, y: top, width: w, height: h };
 
-    sizeLabel.textContent = `${Math.round(w)} × ${Math.round(h)}`;
+    sizeLabel.textContent = `${Math.round(w)} \u00D7 ${Math.round(h)}`;
     sizeLabel.style.left = left + 'px';
     sizeLabel.style.top = (top - 30) + 'px';
 
