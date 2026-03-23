@@ -648,29 +648,36 @@ class AnnotationTool {
       }
     }
 
-    // Build unified path: rounded rect with a triangular notch for the tail
+    // 1) Fill box background
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.15;
     ctx.beginPath();
     ctx.roundRect(boxX, boxY, boxW, boxH, r);
-    // Tail triangle (drawn separately, filled/stroked together)
+    ctx.fill();
+
+    // 2) Fill tail triangle, clipped to OUTSIDE the box so no overlap
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.roundRect(boxX, boxY, boxW, boxH, r);
+    ctx.clip('evenodd'); // clip = everything EXCEPT the box
+    ctx.beginPath();
     ctx.moveTo(a1x, a1y);
     ctx.lineTo(tailX, tailY);
     ctx.lineTo(a2x, a2y);
     ctx.closePath();
-
-    // Fill background
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.15;
     ctx.fill();
+    ctx.restore();
     ctx.globalAlpha = 1;
 
-    // Stroke border for box
+    // 3) Stroke box border
     ctx.strokeStyle = color;
     ctx.lineWidth = strokeWidth;
     ctx.beginPath();
     ctx.roundRect(boxX, boxY, boxW, boxH, r);
     ctx.stroke();
 
-    // Stroke tail lines only (not the base that sits on the box edge)
+    // 4) Stroke tail lines only (two sides, not the base)
     ctx.beginPath();
     ctx.moveTo(a1x, a1y);
     ctx.lineTo(tailX, tailY);
