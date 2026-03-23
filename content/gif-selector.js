@@ -41,8 +41,8 @@
         animation: gif-pulse 1.2s ease-in-out infinite;
       }
       @keyframes gif-pulse {
-        0%, 100% { border-color: #fd795a; box-shadow: 0 0 0 9999px rgba(26, 33, 24, 0.55); }
-        50% { border-color: #ff9a7a; box-shadow: 0 0 0 9999px rgba(26, 33, 24, 0.55), 0 0 20px rgba(253, 121, 90, 0.25); }
+        0%, 100% { border-color: #fd795a; }
+        50% { border-color: #ff9a7a; }
       }
       .gif-resize-handle {
         position: absolute;
