@@ -1,0 +1,36 @@
+ScreenSnap — Herramienta profesional de capturas, grabación GIF y anotaciones
+
+Captura, graba y anota cualquier parte de una página web. ScreenSnap ofrece cuatro modos de captura, un completo editor de anotaciones e historial de capturas — todo funciona 100% en local, sin recopilación de datos.
+
+MODOS DE CAPTURA
+- Selección de área (Alt+Shift+S): Arrastra para seleccionar cualquier zona, ajusta con teclas de dirección
+- Área visible (Alt+Shift+A): Captura lo que ves con un solo clic
+- Página completa: Desplazamiento automático y cosido de toda la página, eliminación inteligente de cabeceras fijas
+- Grabación GIF (Alt+Shift+G): Graba una zona seleccionada como GIF animado de hasta 15 segundos
+
+EDITOR DE ANOTACIONES
+- Formas: Rectángulo, rectángulo redondeado, rectángulo punteado, elipse
+- Flechas: Flechas simples y dobles, líneas rectas
+- Dibujo: Lápiz libre y resaltador
+- Texto: Tamaño de fuente, negrita, cursiva y color personalizables
+- Bocadillos: Burbujas de diálogo con cola suave, tamaño automático según texto
+- Sellos: Marcas rápidas — verificaciones, estrellas, emojis y más
+- Números: Marcadores numerados secuenciales
+- Mosaico / Desenfoque: Oculta información sensible
+- Foco: Oscurece el fondo para resaltar un área
+- Lupa: Amplía los detalles
+- Recorte: Reencuadra después de capturar
+- Deshacer/rehacer completo, atajos de teclado para cada herramienta
+
+CARACTERÍSTICAS
+- Historial de capturas: Miniaturas, búsqueda y filtro por tipo (imagen/GIF)
+- Guardar en PNG, JPG o WebP con calidad ajustable; descarga directa de GIF
+- Copiar al portapapeles con un clic
+- Menú contextual para captura rápida
+- Colores y grosor de línea predeterminados personalizables
+- Controles de zoom con soporte de rueda del ratón
+- Barra de herramientas con grupos plegables — interfaz limpia y compacta
+- 7 idiomas: Español, English, 中文简体, 中文繁體, 日本語, 한국어, Português
+
+PRIVACIDAD
+Todos los datos permanecen en tu dispositivo. Sin cuentas, sin análisis, sin rastreo, sin servidores externos. Ligero y de código abierto bajo licencia MIT.
