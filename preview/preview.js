@@ -579,47 +579,62 @@ class AnnotationTool {
     const ctx = this.ctx;
     ctx.save();
 
-    // Draw rounded rect body with fill
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.12;
-    ctx.beginPath();
-    ctx.roundRect(boxX, boxY, boxW, boxH, 6);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    // Draw tail triangle
+    // Determine which edge the tail connects to and the two anchor points
     const cx = boxX + boxW / 2;
     const cy = boxY + boxH / 2;
-    // Find closest edge point
-    let edgeX = Math.max(boxX + 10, Math.min(cx, boxX + boxW - 10));
-    let edgeY = boxY + boxH; // default bottom
-    if (tailY < boxY) edgeY = boxY; // top
-    if (tailX < boxX) { edgeX = boxX; edgeY = Math.max(boxY + 10, Math.min(cy, boxY + boxH - 10)); }
-    if (tailX > boxX + boxW) { edgeX = boxX + boxW; edgeY = Math.max(boxY + 10, Math.min(cy, boxY + boxH - 10)); }
+    const r = 6; // border radius
+    const gap = 10; // half-width of tail base
 
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.12;
+    // Clamp tail anchor to the nearest edge
+    let a1x, a1y, a2x, a2y;
+    const dx = tailX - cx, dy = tailY - cy;
+    if (Math.abs(dx) / boxW > Math.abs(dy) / boxH) {
+      // Left or right edge
+      if (dx < 0) { // left
+        const ey = Math.max(boxY + r + gap, Math.min(cy, boxY + boxH - r - gap));
+        a1x = boxX; a1y = ey - gap; a2x = boxX; a2y = ey + gap;
+      } else { // right
+        const ey = Math.max(boxY + r + gap, Math.min(cy, boxY + boxH - r - gap));
+        a1x = boxX + boxW; a1y = ey + gap; a2x = boxX + boxW; a2y = ey - gap;
+      }
+    } else {
+      // Top or bottom edge
+      if (dy < 0) { // top
+        const ex = Math.max(boxX + r + gap, Math.min(cx, boxX + boxW - r - gap));
+        a1x = ex + gap; a1y = boxY; a2x = ex - gap; a2y = boxY;
+      } else { // bottom
+        const ex = Math.max(boxX + r + gap, Math.min(cx, boxX + boxW - r - gap));
+        a1x = ex - gap; a1y = boxY + boxH; a2x = ex + gap; a2y = boxY + boxH;
+      }
+    }
+
+    // Build unified path: rounded rect with a triangular notch for the tail
     ctx.beginPath();
-    ctx.moveTo(tailX, tailY);
-    ctx.lineTo(edgeX - 8, edgeY);
-    ctx.lineTo(edgeX + 8, edgeY);
+    ctx.roundRect(boxX, boxY, boxW, boxH, r);
+    // Tail triangle (drawn separately, filled/stroked together)
+    ctx.moveTo(a1x, a1y);
+    ctx.lineTo(tailX, tailY);
+    ctx.lineTo(a2x, a2y);
     ctx.closePath();
+
+    // Fill background
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.15;
     ctx.fill();
     ctx.globalAlpha = 1;
 
-    // Draw border
+    // Stroke border for box
     ctx.strokeStyle = color;
     ctx.lineWidth = strokeWidth;
     ctx.beginPath();
-    ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+    ctx.roundRect(boxX, boxY, boxW, boxH, r);
     ctx.stroke();
 
-    // Draw tail border lines
+    // Stroke tail lines only (not the base that sits on the box edge)
     ctx.beginPath();
-    ctx.moveTo(tailX, tailY);
-    ctx.lineTo(edgeX - 8, edgeY);
-    ctx.moveTo(tailX, tailY);
-    ctx.lineTo(edgeX + 8, edgeY);
+    ctx.moveTo(a1x, a1y);
+    ctx.lineTo(tailX, tailY);
+    ctx.lineTo(a2x, a2y);
     ctx.stroke();
 
     // Draw text inside box
@@ -627,22 +642,21 @@ class AnnotationTool {
     ctx.font = style;
     ctx.fillStyle = color;
     ctx.textBaseline = 'top';
-    // Simple text wrapping
     const words = ann.text.split('');
     let line = '';
-    let lineY = boxY + 8;
-    const maxWidth = boxW - 16;
+    let lineY = boxY + 10;
+    const maxWidth = boxW - 20;
     for (const char of words) {
       const testLine = line + char;
       if (ctx.measureText(testLine).width > maxWidth && line) {
-        ctx.fillText(line, boxX + 8, lineY);
+        ctx.fillText(line, boxX + 10, lineY);
         line = char;
         lineY += ann.fontSize + 4;
       } else {
         line = testLine;
       }
     }
-    ctx.fillText(line, boxX + 8, lineY);
+    ctx.fillText(line, boxX + 10, lineY);
     ctx.textBaseline = 'alphabetic';
     ctx.restore();
   }
