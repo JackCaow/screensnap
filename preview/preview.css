@@ -56,16 +56,21 @@ body {
   height: 100vh;
 }
 
-/* ── Header — glassmorphism bar ── */
+/* ── Header — two-row layout ── */
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
+  flex-direction: column;
   background: rgba(33, 43, 31, 0.8);
   backdrop-filter: blur(12px);
   flex-shrink: 0;
   z-index: 10;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
 }
 
 .header-left,
@@ -76,9 +81,15 @@ body {
 }
 
 .header-center {
-  flex: 1;
   display: flex;
   justify-content: center;
+  padding: 0 12px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.header-center::-webkit-scrollbar {
+  display: none;
 }
 
 .logo {
