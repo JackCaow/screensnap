@@ -108,6 +108,27 @@ class AnnotationTool {
       case 'crop':
         this.drawCropPreview(this.startX, this.startY, x, y);
         break;
+      case 'callout':
+        // Preview: line from tail (start) to box anchor (current)
+        this.ctx.save();
+        this.ctx.strokeStyle = this.color;
+        this.ctx.lineWidth = 1.5;
+        this.ctx.setLineDash([4, 4]);
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.startX, this.startY);
+        this.ctx.lineTo(x, y);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+        // Small circles at endpoints
+        this.ctx.fillStyle = this.color;
+        this.ctx.beginPath();
+        this.ctx.arc(this.startX, this.startY, 4, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 4, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+        break;
       case 'spotlight':
         this.drawSpotlightPreview(this.startX, this.startY, x, y);
         break;
@@ -145,7 +166,9 @@ class AnnotationTool {
     }
 
     if (this.currentTool === 'callout') {
-      this.calloutBox = this._normalizeRect(this.startX, this.startY, x, y);
+      // tail = start point, box placed at end point (auto-sized after text input)
+      this.calloutTail = { x: this.startX, y: this.startY };
+      this.calloutAnchor = { x, y };
       return 'callout';
     }
 
@@ -560,19 +583,53 @@ class AnnotationTool {
 
   // -- Callout --
   addCallout(text, opts = {}) {
-    if (!this.calloutBox || !text.trim()) return;
-    const { left, top, width, height } = this.calloutBox;
+    if (!this.calloutAnchor || !text.trim()) return;
+    const fontSize = opts.fontSize || 16;
+    const bold = opts.bold !== undefined ? opts.bold : false;
+    const italic = opts.italic || false;
+    const color = opts.color || this.color;
+
+    // Measure text to auto-size the box
+    const ctx = this.ctx;
+    const style = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.font = style;
+    const padding = 12;
+    const maxLineW = 240;
+    // Word-wrap and measure
+    const chars = text.split('');
+    const lines = [];
+    let line = '';
+    for (const ch of chars) {
+      const test = line + ch;
+      if (ctx.measureText(test).width > maxLineW && line) {
+        lines.push(line);
+        line = ch;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+
+    let textW = 0;
+    for (const l of lines) textW = Math.max(textW, ctx.measureText(l).width);
+    const boxW = Math.max(60, textW + padding * 2);
+    const boxH = Math.max(36, lines.length * (fontSize + 4) + padding * 2);
+
+    // Position box at anchor point
+    const ax = this.calloutAnchor.x;
+    const ay = this.calloutAnchor.y;
+    const tailX = this.calloutTail ? this.calloutTail.x : ax;
+    const tailY = this.calloutTail ? this.calloutTail.y : ay - 60;
+    const boxX = ax - boxW / 2;
+    const boxY = ay - boxH / 2;
+
     this.annotations.push({
-      tool: 'callout',
-      color: opts.color || this.color,
-      strokeWidth: this.strokeWidth,
-      boxX: left, boxY: top, boxW: width, boxH: height,
-      tailX: this.startX, tailY: this.startY,
-      text, fontSize: opts.fontSize || 16,
-      bold: opts.bold !== undefined ? opts.bold : false,
-      italic: opts.italic || false
+      tool: 'callout', color, strokeWidth: this.strokeWidth,
+      boxX, boxY, boxW, boxH, tailX, tailY,
+      text, fontSize, bold, italic
     });
-    this.calloutBox = null;
+    this.calloutAnchor = null;
+    this.calloutTail = null;
     this.redoStack = [];
     this.redraw();
   }
