@@ -109,25 +109,7 @@ class AnnotationTool {
         this.drawCropPreview(this.startX, this.startY, x, y);
         break;
       case 'callout':
-        // Preview: line from tail (start) to box anchor (current)
-        this.ctx.save();
-        this.ctx.strokeStyle = this.color;
-        this.ctx.lineWidth = 1.5;
-        this.ctx.setLineDash([4, 4]);
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.startX, this.startY);
-        this.ctx.lineTo(x, y);
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
-        // Small circles at endpoints
-        this.ctx.fillStyle = this.color;
-        this.ctx.beginPath();
-        this.ctx.arc(this.startX, this.startY, 4, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, 4, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.restore();
+        // No drag preview — click to place
         break;
       case 'spotlight':
         this.drawSpotlightPreview(this.startX, this.startY, x, y);
@@ -166,9 +148,8 @@ class AnnotationTool {
     }
 
     if (this.currentTool === 'callout') {
-      // tail = start point, box placed at end point (auto-sized after text input)
-      this.calloutTail = { x: this.startX, y: this.startY };
-      this.calloutAnchor = { x, y };
+      // Click to place callout — box at click point, short tail below
+      this.calloutAnchor = { x: this.startX, y: this.startY };
       return 'callout';
     }
 
@@ -615,13 +596,13 @@ class AnnotationTool {
     const boxW = Math.max(60, textW + padding * 2);
     const boxH = Math.max(36, lines.length * (fontSize + 4) + padding * 2);
 
-    // Position box at anchor point
+    // Position box centered at anchor, tail extends below
     const ax = this.calloutAnchor.x;
     const ay = this.calloutAnchor.y;
-    const tailX = this.calloutTail ? this.calloutTail.x : ax;
-    const tailY = this.calloutTail ? this.calloutTail.y : ay - 60;
     const boxX = ax - boxW / 2;
-    const boxY = ay - boxH / 2;
+    const boxY = ay - boxH - 20;
+    const tailX = ax;
+    const tailY = ay;
 
     this.annotations.push({
       tool: 'callout', color, strokeWidth: this.strokeWidth,
@@ -629,7 +610,6 @@ class AnnotationTool {
       text, fontSize, bold, italic
     });
     this.calloutAnchor = null;
-    this.calloutTail = null;
     this.redoStack = [];
     this.redraw();
   }
