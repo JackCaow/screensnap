@@ -1,162 +1,474 @@
 {
-  "extName": { "message": "ScreenSnap" },
-  "extDescription": { "message": "专业截图工具 - 轻松截取可视区域或完整页面" },
-
-  "cmd_captureRegion": { "message": "区域截图" },
-  "cmd_captureVisible": { "message": "截取可视区域" },
-  "cmd_captureFullpage": { "message": "长截屏" },
-  "cmd_captureGif": { "message": "录制 GIF" },
-
-  "popup_captureRegion": { "message": "区域截图" },
-  "popup_captureVisible": { "message": "截取可视区域" },
-  "popup_captureFullpage": { "message": "长截屏" },
-  "popup_capturing": { "message": "正在截图..." },
-  "popup_capturingProgress": { "message": "正在截图... $PROGRESS$%", "placeholders": { "PROGRESS": { "content": "$1" } } },
-  "popup_capturingScreen": { "message": "正在截取当前屏幕..." },
-  "popup_preparingFullpage": { "message": "正在准备长截屏..." },
-  "popup_startRegionFailed": { "message": "启动区域选择失败" },
-  "popup_captureFailed": { "message": "截图失败" },
-  "popup_fullpageFailed": { "message": "长截屏失败" },
-  "popup_storageFailed": { "message": "截图数据过大，存储失败" },
-
-  "error_noTab": { "message": "无法获取当前标签页" },
-  "error_internalPage": { "message": "无法截取浏览器内部页面" },
-  "error_captureFailed": { "message": "截图失败" },
-  "error_fullpageFailed": { "message": "长截屏失败" },
-  "error_noPageInfo": { "message": "无法获取页面信息" },
-  "error_regionFailed": { "message": "区域截图失败" },
-  "error_startRegionFailed": { "message": "启动区域选择失败" },
-  "status_capturing": { "message": "正在截取页面..." },
-  "status_merging": { "message": "正在合并截图..." },
-
-  "preview_title": { "message": "截图预览 - ScreenSnap" },
-  "preview_loading": { "message": "加载中..." },
-  "preview_copy": { "message": "复制" },
-  "preview_save": { "message": "保存" },
-  "preview_cancel": { "message": "取消" },
-  "preview_confirm": { "message": "确认" },
-
-  "tool_select": { "message": "选择 (V)" },
-  "tool_rect": { "message": "矩形 (R)" },
-  "tool_ellipse": { "message": "椭圆 (O)" },
-  "tool_arrow": { "message": "箭头 (A)" },
-  "tool_line": { "message": "直线 (L)" },
-  "tool_pen": { "message": "画笔 (P)" },
-  "tool_highlighter": { "message": "荧光笔 (H)" },
-  "tool_text": { "message": "文字 (T)" },
-  "tool_number": { "message": "序号 (N)" },
-  "tool_dashedRect": { "message": "虚线矩形 (D)" },
-  "tool_roundedRect": { "message": "圆角矩形 (U)" },
-  "tool_doubleArrow": { "message": "双向箭头 (W)" },
-  "tool_mosaic": { "message": "马赛克 (M)" },
-  "tool_blur": { "message": "模糊 (B)" },
-
-  "toolgroup_shapes": { "message": "形状" },
-  "toolgroup_draw": { "message": "绘制" },
-  "toolgroup_mark": { "message": "标记" },
-  "toolgroup_mask": { "message": "遮挡" },
-
-  "color_select": { "message": "选择颜色" },
-  "color_red": { "message": "红色" },
-  "color_orange": { "message": "橙色" },
-  "color_yellow": { "message": "黄色" },
-  "color_yellowGreen": { "message": "黄绿" },
-  "color_green": { "message": "绿色" },
-  "color_cyan": { "message": "青色" },
-  "color_blue": { "message": "蓝色" },
-  "color_purple": { "message": "紫色" },
-  "color_pink": { "message": "粉色" },
-  "color_rose": { "message": "玫红" },
-  "color_white": { "message": "白色" },
-  "color_black": { "message": "黑色" },
-  "color_custom": { "message": "自定义颜色" },
-  "color_customLabel": { "message": "自定义" },
-
-  "stroke_select": { "message": "线条粗细" },
-  "stroke_thin": { "message": "细" },
-  "stroke_medium": { "message": "中" },
-  "stroke_thick": { "message": "粗" },
-  "stroke_extraThick": { "message": "特粗" },
-
-  "action_undo": { "message": "撤销 (Ctrl+Z)" },
-  "action_redo": { "message": "重做 (Ctrl+Y)" },
-  "action_clear": { "message": "清除标注" },
-  "action_copyClipboard": { "message": "复制到剪贴板 (Ctrl+C)" },
-  "action_saveLocal": { "message": "保存到本地 (Ctrl+S)" },
-
-  "zoom_out": { "message": "缩小 (Ctrl+-)" },
-  "zoom_in": { "message": "放大 (Ctrl+=)" },
-  "zoom_clickFitWidth": { "message": "点击适宽" },
-  "zoom_fitWidth": { "message": "适应宽度 (Ctrl+0)" },
-  "zoom_fitView": { "message": "适应窗口" },
-
-  "text_placeholder": { "message": "输入文字..." },
-
-  "confirm_clearAll": { "message": "确定要清除所有标注吗？" },
-  "error_noScreenshot": { "message": "未找到截图数据" },
-  "error_screenshotExpired": { "message": "截图数据已过期" },
-  "error_imageLoadFailed": { "message": "图片加载失败" },
-  "error_loadFailed": { "message": "加载截图失败" },
-  "toast_saved": { "message": "截图已保存" },
-  "toast_saveFailed": { "message": "保存失败: $ERROR$", "placeholders": { "ERROR": { "content": "$1" } } },
-  "toast_copied": { "message": "已复制到剪贴板" },
-  "toast_copyFailed": { "message": "复制失败" },
-
-  "selector_hint": { "message": "拖拽选择截图区域，选中后可拖动调整位置，按 ESC 取消" },
-  "selector_cancel": { "message": "取消" },
-  "selector_confirm": { "message": "确认截图" },
-
-  "options_title": { "message": "设置" },
-  "options_saveFormat": { "message": "保存格式" },
-  "options_imageQuality": { "message": "图片质量" },
-  "options_qualityLow": { "message": "低" },
-  "options_qualityHigh": { "message": "高" },
-  "options_defaultColor": { "message": "默认标注颜色" },
-  "options_defaultStroke": { "message": "默认线条粗细" },
-  "options_autoPreview": { "message": "截图后自动打开预览" },
-  "options_language": { "message": "语言" },
-  "options_languageAuto": { "message": "自动（跟随浏览器）" },
-  "options_languageReload": { "message": "语言变更后需刷新页面生效" },
-  "options_saved": { "message": "设置已保存" },
-
-  "history_title": { "message": "截图历史 - ScreenSnap" },
-  "history_heading": { "message": "截图历史" },
-  "history_searchPlaceholder": { "message": "搜索..." },
-  "history_filterAll": { "message": "全部" },
-  "history_filterVisible": { "message": "可视区域" },
-  "history_filterFullpage": { "message": "长截屏" },
-  "history_filterRegion": { "message": "区域" },
-  "history_statsCount": { "message": "显示 $SHOWN$ / 共 $TOTAL$ 张", "placeholders": { "SHOWN": { "content": "$1" }, "TOTAL": { "content": "$2" } } },
-  "history_clearAll": { "message": "清空全部" },
-  "history_clearAllTitle": { "message": "清空所有截图" },
-  "history_clearAllDesc": { "message": "此操作将删除所有截图数据，无法恢复。确定继续吗？" },
-  "history_clearAllConfirm": { "message": "确认清空" },
-  "history_clearedAll": { "message": "已清空所有截图" },
-  "history_delete": { "message": "删除" },
-  "history_deleteConfirmTitle": { "message": "删除截图" },
-  "history_deleteConfirmDesc": { "message": "此截图将被永久删除，无法恢复。确定继续吗？" },
-  "history_deleted": { "message": "截图已删除" },
-  "history_deleteFailed": { "message": "删除截图失败" },
-  "history_untitled": { "message": "未命名截图" },
-  "history_emptyTitle": { "message": "暂无截图" },
-  "history_emptyDesc": { "message": "截取的截图将显示在这里" },
-  "history_today": { "message": "今天" },
-  "history_yesterday": { "message": "昨天" },
-  "history_daysAgo": { "message": "$DAYS$ 天前", "placeholders": { "DAYS": { "content": "$1" } } },
-  "history_typeVisible": { "message": "可视区域" },
-  "history_typeFullpage": { "message": "长截屏" },
-  "history_typeRegion": { "message": "区域" },
-  "history_typeGif": { "message": "GIF" },
-  "history_filterGif": { "message": "GIF" },
-
-  "popup_captureGif": { "message": "录制 GIF" },
-
-  "gif_selectHint": { "message": "拖拽选择录制区域" },
-  "gif_record": { "message": "录制" },
-  "gif_stop": { "message": "停止" },
-  "gif_startFailed": { "message": "启动 GIF 录制失败" },
-  "gif_encoding": { "message": "正在编码 GIF..." },
-  "gif_encodingProgress": { "message": "正在编码 GIF... $PERCENT$%", "placeholders": { "PERCENT": { "content": "$1" } } },
-  "gif_encodingFailed": { "message": "GIF 编码失败" },
-  "gif_noFrames": { "message": "未找到 GIF 帧数据" }
+  "extName": {
+    "message": "ScreenSnap"
+  },
+  "extDescription": {
+    "message": "专业截图工具 - 轻松截取可视区域或完整页面"
+  },
+  "cmd_captureRegion": {
+    "message": "区域截图"
+  },
+  "cmd_captureVisible": {
+    "message": "截取可视区域"
+  },
+  "cmd_captureFullpage": {
+    "message": "长截屏"
+  },
+  "cmd_captureGif": {
+    "message": "录制 GIF"
+  },
+  "popup_captureRegion": {
+    "message": "区域截图"
+  },
+  "popup_captureVisible": {
+    "message": "截取可视区域"
+  },
+  "popup_captureFullpage": {
+    "message": "长截屏"
+  },
+  "popup_capturing": {
+    "message": "正在截图..."
+  },
+  "popup_capturingProgress": {
+    "message": "正在截图... $PROGRESS$%",
+    "placeholders": {
+      "PROGRESS": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_capturingScreen": {
+    "message": "正在截取当前屏幕..."
+  },
+  "popup_preparingFullpage": {
+    "message": "正在准备长截屏..."
+  },
+  "popup_startRegionFailed": {
+    "message": "启动区域选择失败"
+  },
+  "popup_captureFailed": {
+    "message": "截图失败"
+  },
+  "popup_fullpageFailed": {
+    "message": "长截屏失败"
+  },
+  "popup_storageFailed": {
+    "message": "截图数据过大，存储失败"
+  },
+  "error_noTab": {
+    "message": "无法获取当前标签页"
+  },
+  "error_internalPage": {
+    "message": "无法截取浏览器内部页面"
+  },
+  "error_captureFailed": {
+    "message": "截图失败"
+  },
+  "error_fullpageFailed": {
+    "message": "长截屏失败"
+  },
+  "error_noPageInfo": {
+    "message": "无法获取页面信息"
+  },
+  "error_regionFailed": {
+    "message": "区域截图失败"
+  },
+  "error_startRegionFailed": {
+    "message": "启动区域选择失败"
+  },
+  "status_capturing": {
+    "message": "正在截取页面..."
+  },
+  "status_merging": {
+    "message": "正在合并截图..."
+  },
+  "preview_title": {
+    "message": "截图预览 - ScreenSnap"
+  },
+  "preview_loading": {
+    "message": "加载中..."
+  },
+  "preview_copy": {
+    "message": "复制"
+  },
+  "preview_save": {
+    "message": "保存"
+  },
+  "preview_cancel": {
+    "message": "取消"
+  },
+  "preview_confirm": {
+    "message": "确认"
+  },
+  "tool_select": {
+    "message": "选择 (V)"
+  },
+  "tool_rect": {
+    "message": "矩形 (R)"
+  },
+  "tool_ellipse": {
+    "message": "椭圆 (O)"
+  },
+  "tool_arrow": {
+    "message": "箭头 (A)"
+  },
+  "tool_line": {
+    "message": "直线 (L)"
+  },
+  "tool_pen": {
+    "message": "画笔 (P)"
+  },
+  "tool_highlighter": {
+    "message": "荧光笔 (H)"
+  },
+  "tool_text": {
+    "message": "文字 (T)"
+  },
+  "tool_number": {
+    "message": "序号 (N)"
+  },
+  "tool_dashedRect": {
+    "message": "虚线矩形 (D)"
+  },
+  "tool_roundedRect": {
+    "message": "圆角矩形 (U)"
+  },
+  "tool_doubleArrow": {
+    "message": "双向箭头 (W)"
+  },
+  "tool_mosaic": {
+    "message": "马赛克 (M)"
+  },
+  "tool_blur": {
+    "message": "模糊 (B)"
+  },
+  "toolgroup_shapes": {
+    "message": "形状"
+  },
+  "toolgroup_draw": {
+    "message": "绘制"
+  },
+  "toolgroup_mark": {
+    "message": "标记"
+  },
+  "toolgroup_mask": {
+    "message": "遮挡"
+  },
+  "color_select": {
+    "message": "选择颜色"
+  },
+  "color_red": {
+    "message": "红色"
+  },
+  "color_orange": {
+    "message": "橙色"
+  },
+  "color_yellow": {
+    "message": "黄色"
+  },
+  "color_yellowGreen": {
+    "message": "黄绿"
+  },
+  "color_green": {
+    "message": "绿色"
+  },
+  "color_cyan": {
+    "message": "青色"
+  },
+  "color_blue": {
+    "message": "蓝色"
+  },
+  "color_purple": {
+    "message": "紫色"
+  },
+  "color_pink": {
+    "message": "粉色"
+  },
+  "color_rose": {
+    "message": "玫红"
+  },
+  "color_white": {
+    "message": "白色"
+  },
+  "color_black": {
+    "message": "黑色"
+  },
+  "color_custom": {
+    "message": "自定义颜色"
+  },
+  "color_customLabel": {
+    "message": "自定义"
+  },
+  "stroke_select": {
+    "message": "线条粗细"
+  },
+  "stroke_thin": {
+    "message": "细"
+  },
+  "stroke_medium": {
+    "message": "中"
+  },
+  "stroke_thick": {
+    "message": "粗"
+  },
+  "stroke_extraThick": {
+    "message": "特粗"
+  },
+  "action_undo": {
+    "message": "撤销 (Ctrl+Z)"
+  },
+  "action_redo": {
+    "message": "重做 (Ctrl+Y)"
+  },
+  "action_clear": {
+    "message": "清除标注"
+  },
+  "action_copyClipboard": {
+    "message": "复制到剪贴板 (Ctrl+C)"
+  },
+  "action_saveLocal": {
+    "message": "保存到本地 (Ctrl+S)"
+  },
+  "zoom_out": {
+    "message": "缩小 (Ctrl+-)"
+  },
+  "zoom_in": {
+    "message": "放大 (Ctrl+=)"
+  },
+  "zoom_clickFitWidth": {
+    "message": "点击适宽"
+  },
+  "zoom_fitWidth": {
+    "message": "适应宽度 (Ctrl+0)"
+  },
+  "zoom_fitView": {
+    "message": "适应窗口"
+  },
+  "text_placeholder": {
+    "message": "输入文字..."
+  },
+  "confirm_clearAll": {
+    "message": "确定要清除所有标注吗？"
+  },
+  "error_noScreenshot": {
+    "message": "未找到截图数据"
+  },
+  "error_screenshotExpired": {
+    "message": "截图数据已过期"
+  },
+  "error_imageLoadFailed": {
+    "message": "图片加载失败"
+  },
+  "error_loadFailed": {
+    "message": "加载截图失败"
+  },
+  "toast_saved": {
+    "message": "截图已保存"
+  },
+  "toast_saveFailed": {
+    "message": "保存失败: $ERROR$",
+    "placeholders": {
+      "ERROR": {
+        "content": "$1"
+      }
+    }
+  },
+  "toast_copied": {
+    "message": "已复制到剪贴板"
+  },
+  "toast_copyFailed": {
+    "message": "复制失败"
+  },
+  "selector_hint": {
+    "message": "拖拽选择截图区域，选中后可拖动调整位置，按 ESC 取消"
+  },
+  "selector_cancel": {
+    "message": "取消"
+  },
+  "selector_confirm": {
+    "message": "确认截图"
+  },
+  "options_title": {
+    "message": "设置"
+  },
+  "options_saveFormat": {
+    "message": "保存格式"
+  },
+  "options_imageQuality": {
+    "message": "图片质量"
+  },
+  "options_qualityLow": {
+    "message": "低"
+  },
+  "options_qualityHigh": {
+    "message": "高"
+  },
+  "options_defaultColor": {
+    "message": "默认标注颜色"
+  },
+  "options_defaultStroke": {
+    "message": "默认线条粗细"
+  },
+  "options_autoPreview": {
+    "message": "截图后自动打开预览"
+  },
+  "options_language": {
+    "message": "语言"
+  },
+  "options_languageAuto": {
+    "message": "自动（跟随浏览器）"
+  },
+  "options_languageReload": {
+    "message": "语言变更后需刷新页面生效"
+  },
+  "options_saved": {
+    "message": "设置已保存"
+  },
+  "history_title": {
+    "message": "截图历史 - ScreenSnap"
+  },
+  "history_heading": {
+    "message": "截图历史"
+  },
+  "history_searchPlaceholder": {
+    "message": "搜索..."
+  },
+  "history_filterAll": {
+    "message": "全部"
+  },
+  "history_filterVisible": {
+    "message": "可视区域"
+  },
+  "history_filterFullpage": {
+    "message": "长截屏"
+  },
+  "history_filterRegion": {
+    "message": "区域"
+  },
+  "history_statsCount": {
+    "message": "显示 $SHOWN$ / 共 $TOTAL$ 张",
+    "placeholders": {
+      "SHOWN": {
+        "content": "$1"
+      },
+      "TOTAL": {
+        "content": "$2"
+      }
+    }
+  },
+  "history_clearAll": {
+    "message": "清空全部"
+  },
+  "history_clearAllTitle": {
+    "message": "清空所有截图"
+  },
+  "history_clearAllDesc": {
+    "message": "此操作将删除所有截图数据，无法恢复。确定继续吗？"
+  },
+  "history_clearAllConfirm": {
+    "message": "确认清空"
+  },
+  "history_clearedAll": {
+    "message": "已清空所有截图"
+  },
+  "history_delete": {
+    "message": "删除"
+  },
+  "history_deleteConfirmTitle": {
+    "message": "删除截图"
+  },
+  "history_deleteConfirmDesc": {
+    "message": "此截图将被永久删除，无法恢复。确定继续吗？"
+  },
+  "history_deleted": {
+    "message": "截图已删除"
+  },
+  "history_deleteFailed": {
+    "message": "删除截图失败"
+  },
+  "history_untitled": {
+    "message": "未命名截图"
+  },
+  "history_emptyTitle": {
+    "message": "暂无截图"
+  },
+  "history_emptyDesc": {
+    "message": "截取的截图将显示在这里"
+  },
+  "history_today": {
+    "message": "今天"
+  },
+  "history_yesterday": {
+    "message": "昨天"
+  },
+  "history_daysAgo": {
+    "message": "$DAYS$ 天前",
+    "placeholders": {
+      "DAYS": {
+        "content": "$1"
+      }
+    }
+  },
+  "history_typeVisible": {
+    "message": "可视区域"
+  },
+  "history_typeFullpage": {
+    "message": "长截屏"
+  },
+  "history_typeRegion": {
+    "message": "区域"
+  },
+  "history_typeGif": {
+    "message": "GIF"
+  },
+  "history_filterGif": {
+    "message": "GIF"
+  },
+  "popup_captureGif": {
+    "message": "录制 GIF"
+  },
+  "gif_selectHint": {
+    "message": "拖拽选择录制区域"
+  },
+  "gif_record": {
+    "message": "录制"
+  },
+  "gif_stop": {
+    "message": "停止"
+  },
+  "gif_startFailed": {
+    "message": "启动 GIF 录制失败"
+  },
+  "gif_encoding": {
+    "message": "正在编码 GIF..."
+  },
+  "gif_encodingProgress": {
+    "message": "正在编码 GIF... $PERCENT$%",
+    "placeholders": {
+      "PERCENT": {
+        "content": "$1"
+      }
+    }
+  },
+  "gif_encodingFailed": {
+    "message": "GIF 编码失败"
+  },
+  "gif_noFrames": {
+    "message": "未找到 GIF 帧数据"
+  },
+  "tool_crop": {
+    "message": "裁剪 (C)"
+  },
+  "tool_callout": {
+    "message": "气泡标注 (K)"
+  },
+  "tool_stamp": {
+    "message": "贴纸 (E)"
+  },
+  "tool_magnify": {
+    "message": "放大镜 (G)"
+  },
+  "tool_spotlight": {
+    "message": "聚光灯 (J)"
+  }
 }

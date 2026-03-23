@@ -19,11 +19,26 @@ class AnnotationTool {
     this.strokeWidth = 2;
     this.textPosition = null;
     this.numberCounter = 1;
+    // Selection state for move/resize
+    this.selectedIndex = -1;
+    this.dragMode = null; // 'move' | 'resize-XX'
+    this.dragStart = null;
+    this.dragOriginal = null;
+    // Stamp state
+    this.currentStamp = '✓';
+    this.stampSize = 32;
+    // Crop state
+    this.cropRegion = null;
+    this.isCropping = false;
   }
 
   setTool(tool) {
     this.currentTool = tool;
+    this.selectedIndex = -1;
+    this.cropRegion = null;
+    this.isCropping = false;
     this.canvas.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    this.redraw();
   }
 
   setColor(color) {
@@ -90,6 +105,15 @@ class AnnotationTool {
       case 'blur':
         this.drawMosaicPreview(this.startX, this.startY, x, y);
         break;
+      case 'crop':
+        this.drawCropPreview(this.startX, this.startY, x, y);
+        break;
+      case 'spotlight':
+        this.drawSpotlightPreview(this.startX, this.startY, x, y);
+        break;
+      case 'magnify':
+        this.drawMagnifyPreview(this.startX, this.startY, x, y);
+        break;
     }
   }
 
@@ -107,6 +131,24 @@ class AnnotationTool {
       return null;
     }
 
+    if (this.currentTool === 'stamp') {
+      this.addStamp(x, y);
+      return null;
+    }
+
+    if (this.currentTool === 'crop') {
+      this.cropRegion = this._normalizeRect(this.startX, this.startY, x, y);
+      this.isCropping = true;
+      this.redraw();
+      this._drawCropOverlay();
+      return 'crop';
+    }
+
+    if (this.currentTool === 'callout') {
+      this.calloutBox = this._normalizeRect(this.startX, this.startY, x, y);
+      return 'callout';
+    }
+
     const annotation = {
       tool: this.currentTool,
       color: this.color,
@@ -120,6 +162,21 @@ class AnnotationTool {
 
     if (this.currentTool === 'mosaic' || this.currentTool === 'blur') {
       annotation.imageData = this.getMosaicData(this.startX, this.startY, x, y);
+    }
+
+    if (this.currentTool === 'magnify') {
+      const cx = (this.startX + x) / 2;
+      const cy = (this.startY + y) / 2;
+      const radius = Math.max(30, Math.sqrt((x - this.startX) ** 2 + (y - this.startY) ** 2) / 2);
+      annotation.tool = 'magnify';
+      annotation.cx = cx;
+      annotation.cy = cy;
+      annotation.radius = radius;
+      annotation.zoomLevel = 2;
+    }
+
+    if (this.currentTool === 'spotlight') {
+      annotation.tool = 'spotlight';
     }
 
     this.annotations.push(annotation);
@@ -391,6 +448,346 @@ class AnnotationTool {
     }
   }
 
+  // ==================== New Tools ====================
+
+  _normalizeRect(x1, y1, x2, y2) {
+    return {
+      left: Math.min(x1, x2), top: Math.min(y1, y2),
+      width: Math.abs(x2 - x1), height: Math.abs(y2 - y1)
+    };
+  }
+
+  // -- Crop --
+  drawCropPreview(x1, y1, x2, y2) {
+    const { left, top, width, height } = this._normalizeRect(x1, y1, x2, y2);
+    this.ctx.save();
+    this.ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(left, top, width, height);
+    this.ctx.strokeStyle = '#8cb485';
+    this.ctx.lineWidth = 2;
+    this.ctx.setLineDash([6, 4]);
+    this.ctx.strokeRect(left, top, width, height);
+    this.ctx.setLineDash([]);
+    this.ctx.restore();
+  }
+
+  _drawCropOverlay() {
+    if (!this.cropRegion) return;
+    const { left, top, width, height } = this.cropRegion;
+    this.ctx.save();
+    this.ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(left, top, width, height);
+    this.ctx.strokeStyle = '#8cb485';
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(left, top, width, height);
+    this.ctx.restore();
+  }
+
+  applyCrop() {
+    if (!this.cropRegion) return;
+    const { left, top, width, height } = this.cropRegion;
+    if (width < 10 || height < 10) return;
+
+    // Save state for undo
+    const prevImage = this.baseImage;
+    const prevW = this.canvas.width;
+    const prevH = this.canvas.height;
+    const prevAnnotations = JSON.parse(JSON.stringify(this.annotations));
+
+    // Create cropped image
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // Redraw base + annotations, then crop
+    this.redraw();
+    tempCtx.drawImage(this.canvas, left, top, width, height, 0, 0, width, height);
+
+    // Update canvas
+    this.canvas.width = width;
+    this.canvas.height = height;
+    const img = new Image();
+    img.onload = () => {
+      this.baseImage = img;
+      this.annotations = [];
+      this.redoStack = [];
+      this.ctx.drawImage(img, 0, 0);
+      // Store crop undo info
+      this.annotations.push({
+        tool: '_cropUndo', prevImage, prevW, prevH, prevAnnotations
+      });
+      this.cropRegion = null;
+      this.isCropping = false;
+    };
+    img.src = tempCanvas.toDataURL('image/png');
+    return true;
+  }
+
+  cancelCrop() {
+    this.cropRegion = null;
+    this.isCropping = false;
+    this.redraw();
+  }
+
+  // -- Stamp --
+  addStamp(x, y) {
+    this.annotations.push({
+      tool: 'stamp', x, y,
+      emoji: this.currentStamp,
+      size: this.stampSize,
+      color: this.color
+    });
+    this.redoStack = [];
+    this.redraw();
+  }
+
+  drawStamp(x, y, emoji, size) {
+    this.ctx.font = `${size}px -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", sans-serif`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(emoji, x, y);
+    this.ctx.textAlign = 'start';
+    this.ctx.textBaseline = 'alphabetic';
+  }
+
+  // -- Callout --
+  addCallout(text, opts = {}) {
+    if (!this.calloutBox || !text.trim()) return;
+    const { left, top, width, height } = this.calloutBox;
+    this.annotations.push({
+      tool: 'callout',
+      color: opts.color || this.color,
+      strokeWidth: this.strokeWidth,
+      boxX: left, boxY: top, boxW: width, boxH: height,
+      tailX: this.startX, tailY: this.startY,
+      text, fontSize: opts.fontSize || 16,
+      bold: opts.bold !== undefined ? opts.bold : false,
+      italic: opts.italic || false
+    });
+    this.calloutBox = null;
+    this.redoStack = [];
+    this.redraw();
+  }
+
+  drawCallout(ann) {
+    const { boxX, boxY, boxW, boxH, tailX, tailY, color, strokeWidth } = ann;
+    const ctx = this.ctx;
+    ctx.save();
+
+    // Draw rounded rect body with fill
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.12;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Draw tail triangle
+    const cx = boxX + boxW / 2;
+    const cy = boxY + boxH / 2;
+    // Find closest edge point
+    let edgeX = Math.max(boxX + 10, Math.min(cx, boxX + boxW - 10));
+    let edgeY = boxY + boxH; // default bottom
+    if (tailY < boxY) edgeY = boxY; // top
+    if (tailX < boxX) { edgeX = boxX; edgeY = Math.max(boxY + 10, Math.min(cy, boxY + boxH - 10)); }
+    if (tailX > boxX + boxW) { edgeX = boxX + boxW; edgeY = Math.max(boxY + 10, Math.min(cy, boxY + boxH - 10)); }
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.12;
+    ctx.beginPath();
+    ctx.moveTo(tailX, tailY);
+    ctx.lineTo(edgeX - 8, edgeY);
+    ctx.lineTo(edgeX + 8, edgeY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Draw border
+    ctx.strokeStyle = color;
+    ctx.lineWidth = strokeWidth;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+    ctx.stroke();
+
+    // Draw tail border lines
+    ctx.beginPath();
+    ctx.moveTo(tailX, tailY);
+    ctx.lineTo(edgeX - 8, edgeY);
+    ctx.moveTo(tailX, tailY);
+    ctx.lineTo(edgeX + 8, edgeY);
+    ctx.stroke();
+
+    // Draw text inside box
+    const style = `${ann.italic ? 'italic ' : ''}${ann.bold ? 'bold ' : ''}${ann.fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.font = style;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'top';
+    // Simple text wrapping
+    const words = ann.text.split('');
+    let line = '';
+    let lineY = boxY + 8;
+    const maxWidth = boxW - 16;
+    for (const char of words) {
+      const testLine = line + char;
+      if (ctx.measureText(testLine).width > maxWidth && line) {
+        ctx.fillText(line, boxX + 8, lineY);
+        line = char;
+        lineY += ann.fontSize + 4;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, boxX + 8, lineY);
+    ctx.textBaseline = 'alphabetic';
+    ctx.restore();
+  }
+
+  // -- Magnify --
+  drawMagnifyPreview(x1, y1, x2, y2) {
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const radius = Math.max(30, Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) / 2);
+    this._renderMagnify(cx, cy, radius, 2);
+  }
+
+  _renderMagnify(cx, cy, radius, zoom) {
+    const ctx = this.ctx;
+    if (!this.baseImage) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Draw zoomed portion of base image
+    const srcX = cx - radius / zoom;
+    const srcY = cy - radius / zoom;
+    const srcW = (radius * 2) / zoom;
+    const srcH = (radius * 2) / zoom;
+    ctx.drawImage(this.baseImage, srcX, srcY, srcW, srcH, cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx.restore();
+
+    // Draw border
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = '#8cb485';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  // -- Spotlight --
+  drawSpotlightPreview(x1, y1, x2, y2) {
+    const { left, top, width, height } = this._normalizeRect(x1, y1, x2, y2);
+    this._renderSpotlight(left, top, width, height);
+  }
+
+  _renderSpotlight(left, top, width, height) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    // Draw 4 rectangles around the spotlight area
+    ctx.fillRect(0, 0, this.canvas.width, top); // top
+    ctx.fillRect(0, top, left, height); // left
+    ctx.fillRect(left + width, top, this.canvas.width - left - width, height); // right
+    ctx.fillRect(0, top + height, this.canvas.width, this.canvas.height - top - height); // bottom
+    // Subtle border
+    ctx.strokeStyle = 'rgba(140, 180, 133, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(left, top, width, height);
+    ctx.restore();
+  }
+
+  // -- Hit Test for Select tool --
+  hitTest(x, y) {
+    for (let i = this.annotations.length - 1; i >= 0; i--) {
+      const a = this.annotations[i];
+      if (a.tool === '_cropUndo') continue;
+      const bounds = this._getAnnotationBounds(a);
+      if (!bounds) continue;
+      if (x >= bounds.left - 5 && x <= bounds.left + bounds.width + 5 &&
+          y >= bounds.top - 5 && y <= bounds.top + bounds.height + 5) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  _getAnnotationBounds(a) {
+    if (a.tool === 'text' || a.tool === 'number' || a.tool === 'stamp') {
+      const size = a.fontSize || a.size || 28;
+      return { left: a.x - size, top: a.y - size, width: size * 2, height: size * 2 };
+    }
+    if (a.tool === 'callout') {
+      return { left: a.boxX, top: a.boxY, width: a.boxW, height: a.boxH };
+    }
+    if (a.tool === 'magnify') {
+      return { left: a.cx - a.radius, top: a.cy - a.radius, width: a.radius * 2, height: a.radius * 2 };
+    }
+    if (a.startX !== undefined) {
+      const left = Math.min(a.startX, a.endX);
+      const top = Math.min(a.startY, a.endY);
+      return { left, top, width: Math.abs(a.endX - a.startX), height: Math.abs(a.endY - a.startY) };
+    }
+    if (a.path && a.path.length > 0) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const p of a.path) {
+        minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+      }
+      return { left: minX, top: minY, width: maxX - minX, height: maxY - minY };
+    }
+    return null;
+  }
+
+  drawSelectionHandles(index) {
+    const a = this.annotations[index];
+    const bounds = this._getAnnotationBounds(a);
+    if (!bounds) return;
+    const { left, top, width, height } = bounds;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = '#8cb485';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(left, top, width, height);
+    ctx.setLineDash([]);
+    // Draw corner handles
+    const hs = 6;
+    ctx.fillStyle = '#8cb485';
+    for (const [hx, hy] of [[left, top], [left + width, top], [left, top + height], [left + width, top + height]]) {
+      ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+    }
+    ctx.restore();
+  }
+
+  moveAnnotation(index, dx, dy) {
+    const a = this.annotations[index];
+    if (a.startX !== undefined) {
+      a.startX += dx; a.startY += dy; a.endX += dx; a.endY += dy;
+    }
+    if (a.x !== undefined) { a.x += dx; a.y += dy; }
+    if (a.cx !== undefined) { a.cx += dx; a.cy += dy; }
+    if (a.boxX !== undefined) { a.boxX += dx; a.boxY += dy; a.tailX += dx; a.tailY += dy; }
+    if (a.path) {
+      for (const p of a.path) { p.x += dx; p.y += dy; }
+    }
+    if (a.imageData) { a.imageData.left += dx; a.imageData.top += dy; }
+    this.redraw();
+  }
+
+  deleteSelected() {
+    if (this.selectedIndex < 0) return;
+    const removed = this.annotations.splice(this.selectedIndex, 1)[0];
+    if (removed.tool === 'number') {
+      this.numberCounter = Math.max(1, this.numberCounter - 1);
+    }
+    this.redoStack.push(removed);
+    this.selectedIndex = -1;
+    this.redraw();
+  }
+
   renderAnnotation(annotation) {
     this.ctx.strokeStyle = annotation.color;
     this.ctx.lineWidth = annotation.strokeWidth;
@@ -490,6 +887,26 @@ class AnnotationTool {
       case 'blur':
         this.applyMosaic(annotation.imageData, true);
         break;
+      case 'stamp':
+        this.drawStamp(annotation.x, annotation.y, annotation.emoji, annotation.size);
+        break;
+      case 'callout':
+        this.drawCallout(annotation);
+        break;
+      case 'magnify':
+        this._renderMagnify(annotation.cx, annotation.cy, annotation.radius, annotation.zoomLevel);
+        break;
+      case 'spotlight':
+        this._renderSpotlight(
+          Math.min(annotation.startX, annotation.endX),
+          Math.min(annotation.startY, annotation.endY),
+          Math.abs(annotation.endX - annotation.startX),
+          Math.abs(annotation.endY - annotation.startY)
+        );
+        break;
+      case '_cropUndo':
+        // Not rendered — only used for undo state
+        break;
     }
   }
 
@@ -501,6 +918,11 @@ class AnnotationTool {
     for (const annotation of this.annotations) {
       this.renderAnnotation(annotation);
     }
+
+    // Draw selection handles if an annotation is selected
+    if (this.selectedIndex >= 0 && this.selectedIndex < this.annotations.length) {
+      this.drawSelectionHandles(this.selectedIndex);
+    }
   }
 
   undo() {
@@ -509,6 +931,16 @@ class AnnotationTool {
     if (removed.tool === 'number') {
       this.numberCounter = Math.max(1, this.numberCounter - 1);
     }
+    if (removed.tool === '_cropUndo') {
+      // Restore pre-crop state
+      this.baseImage = removed.prevImage;
+      this.canvas.width = removed.prevW;
+      this.canvas.height = removed.prevH;
+      this.annotations = removed.prevAnnotations;
+      this.redraw();
+      return true;
+    }
+    this.selectedIndex = -1;
     this.redoStack.push(removed);
     this.redraw();
     return true;
@@ -605,6 +1037,40 @@ class ScreenSnapPreview {
 
     this.toolbar.querySelector('[data-tool="select"]').classList.add('active');
 
+    // Stamp picker popup
+    const stampBtn = this.toolbar.querySelector('[data-tool="stamp"]');
+    if (stampBtn) {
+      const stampWrapper = document.createElement('div');
+      stampWrapper.style.position = 'relative';
+      stampWrapper.style.display = 'inline-flex';
+      stampBtn.parentNode.insertBefore(stampWrapper, stampBtn);
+      stampWrapper.appendChild(stampBtn);
+
+      const stampPicker = document.createElement('div');
+      stampPicker.className = 'stamp-picker hidden';
+      stampPicker.id = 'stampPicker';
+      const stamps = ['✓', '✗', '❤', '⭐', '❗', '❓', '👍', '👎', '🔥', '💡', '⚠️', '🎯'];
+      stamps.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'stamp-item' + (emoji === '✓' ? ' active' : '');
+        btn.textContent = emoji;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          stampPicker.querySelectorAll('.stamp-item').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.annotationTool.currentStamp = emoji;
+          stampPicker.classList.add('hidden');
+        });
+        stampPicker.appendChild(btn);
+      });
+      stampWrapper.appendChild(stampPicker);
+
+      stampBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        stampPicker.classList.toggle('hidden');
+      });
+    }
+
     // Color picker popup
     const colorBtn = document.getElementById('colorBtn');
     const colorPopup = document.getElementById('colorPopup');
@@ -672,6 +1138,10 @@ class ScreenSnapPreview {
       if (!e.target.closest('.stroke-picker-wrapper')) {
         strokePopup.classList.add('hidden');
       }
+      const sp = document.getElementById('stampPicker');
+      if (sp && !e.target.closest('[data-tool="stamp"]') && !e.target.closest('.stamp-picker')) {
+        sp.classList.add('hidden');
+      }
     });
 
     // Action buttons
@@ -705,32 +1175,126 @@ class ScreenSnapPreview {
   setupCanvas() {
     this.canvas.addEventListener('mousedown', (e) => {
       const { x, y } = this.getCanvasCoords(e);
+      const tool = this.annotationTool;
 
-      if (this.annotationTool.currentTool === 'text') {
-        this.annotationTool.textPosition = { x, y };
+      // Select tool: hit test for move/resize
+      if (tool.currentTool === 'select') {
+        const hit = tool.hitTest(x, y);
+        if (hit >= 0) {
+          tool.selectedIndex = hit;
+          tool.dragMode = 'move';
+          tool.dragStart = { x, y };
+          tool.dragOriginal = { x, y };
+          tool.redraw();
+        } else {
+          tool.selectedIndex = -1;
+          tool.redraw();
+        }
+        return;
+      }
+
+      if (tool.currentTool === 'text') {
+        tool.textPosition = { x, y };
         this.showTextInput();
         return;
       }
 
-      if (this.annotationTool.currentTool === 'number') {
-        this.annotationTool.addNumber(x, y);
+      if (tool.currentTool === 'number') {
+        tool.addNumber(x, y);
         this.saveAnnotations();
         return;
       }
 
-      this.annotationTool.startDraw(x, y);
+      if (tool.currentTool === 'stamp') {
+        tool.addStamp(x, y);
+        this.saveAnnotations();
+        return;
+      }
+
+      tool.startDraw(x, y);
     });
 
     this.canvas.addEventListener('mousemove', (e) => {
       const { x, y } = this.getCanvasCoords(e);
-      this.annotationTool.draw(x, y);
+      const tool = this.annotationTool;
+
+      // Select tool: drag to move
+      if (tool.currentTool === 'select' && tool.dragMode === 'move' && tool.selectedIndex >= 0) {
+        const dx = x - tool.dragStart.x;
+        const dy = y - tool.dragStart.y;
+        tool.dragStart = { x, y };
+        tool.moveAnnotation(tool.selectedIndex, dx, dy);
+        return;
+      }
+
+      tool.draw(x, y);
     });
 
     this.canvas.addEventListener('mouseup', (e) => {
       const { x, y } = this.getCanvasCoords(e);
-      this.annotationTool.endDraw(x, y);
+      const tool = this.annotationTool;
+
+      // Select tool: end drag
+      if (tool.currentTool === 'select') {
+        if (tool.dragMode) {
+          tool.dragMode = null;
+          this.saveAnnotations();
+        }
+        return;
+      }
+
+      const result = tool.endDraw(x, y);
+
+      if (result === 'crop') {
+        this._showCropActions();
+        return;
+      }
+
+      if (result === 'callout') {
+        this.showCalloutInput();
+        return;
+      }
+
       this.saveAnnotations();
     });
+  }
+
+  _showCropActions() {
+    // Show floating crop confirm/cancel buttons
+    const existing = document.getElementById('cropActions');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.id = 'cropActions';
+    div.className = 'crop-actions';
+    div.innerHTML = `
+      <button class="btn btn-secondary crop-cancel-btn">${i18n('preview_cancel')}</button>
+      <button class="btn btn-primary crop-confirm-btn">${i18n('tool_crop')}</button>
+    `;
+    this.canvasContainer.appendChild(div);
+
+    div.querySelector('.crop-confirm-btn').addEventListener('click', () => {
+      this.annotationTool.applyCrop();
+      div.remove();
+      this.calcFitZooms();
+      this.setZoom(this.fitWidthZoom);
+      this.saveAnnotations();
+    });
+    div.querySelector('.crop-cancel-btn').addEventListener('click', () => {
+      this.annotationTool.cancelCrop();
+      div.remove();
+    });
+  }
+
+  showCalloutInput() {
+    this.textInputOverlay.classList.remove('hidden');
+    this.textArea.value = '';
+    document.getElementById('textColorPicker').value = this.annotationTool.color;
+    document.getElementById('textFontSize').value = '16';
+    document.getElementById('textBold').classList.remove('active');
+    document.getElementById('textItalic').classList.remove('active');
+    this.textArea.focus();
+    this._isCalloutMode = true;
   }
 
   // ==================== Zoom ====================
@@ -812,11 +1376,20 @@ class ScreenSnapPreview {
       if (e.target.tagName === 'TEXTAREA') return;
 
       // Tool shortcuts
+      // Delete key removes selected annotation
+      if ((e.key === 'Delete' || e.key === 'Backspace') && this.annotationTool.selectedIndex >= 0) {
+        e.preventDefault();
+        this.annotationTool.deleteSelected();
+        this.saveAnnotations();
+        return;
+      }
+
       const toolShortcuts = {
         'v': 'select', 'r': 'rect', 'd': 'dashedRect', 'u': 'roundedRect',
         'o': 'ellipse', 'a': 'arrow', 'w': 'doubleArrow',
         'l': 'line', 'p': 'pen', 'h': 'highlighter', 't': 'text',
-        'n': 'number', 'm': 'mosaic', 'b': 'blur'
+        'n': 'number', 'm': 'mosaic', 'b': 'blur',
+        'c': 'crop', 'k': 'callout', 'e': 'stamp', 'g': 'magnify', 'j': 'spotlight'
       };
 
       if (!e.ctrlKey && !e.metaKey && toolShortcuts[e.key.toLowerCase()]) {
@@ -898,7 +1471,12 @@ class ScreenSnapPreview {
     const italic = document.getElementById('textItalic').classList.contains('active');
     const color = document.getElementById('textColorPicker').value;
 
-    this.annotationTool.addText(this.textArea.value, { fontSize, bold, italic, color });
+    if (this._isCalloutMode) {
+      this.annotationTool.addCallout(this.textArea.value, { fontSize, bold, italic, color });
+      this._isCalloutMode = false;
+    } else {
+      this.annotationTool.addText(this.textArea.value, { fontSize, bold, italic, color });
+    }
     this.saveAnnotations();
     this.hideTextInput();
   }

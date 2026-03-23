@@ -689,3 +689,61 @@ body {
   display: flex;
   gap: 12px;
 }
+
+/* ── Crop Actions ── */
+.crop-actions {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(33, 43, 31, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-popup);
+  z-index: 100;
+}
+
+/* ── Stamp Picker ── */
+.stamp-picker {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(33, 43, 31, 0.92);
+  backdrop-filter: blur(16px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popup);
+  z-index: 100;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.stamp-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.stamp-item:hover {
+  background: var(--surface-container-high);
+  transform: scale(1.15);
+}
+
+.stamp-item.active {
+  background: var(--primary);
+  border-radius: var(--radius-md);
+}
