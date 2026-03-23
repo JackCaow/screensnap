@@ -509,21 +509,23 @@ class AnnotationTool {
     // Update canvas
     this.canvas.width = width;
     this.canvas.height = height;
-    const img = new Image();
-    img.onload = () => {
-      this.baseImage = img;
-      this.annotations = [];
-      this.redoStack = [];
-      this.ctx.drawImage(img, 0, 0);
-      // Store crop undo info
-      this.annotations.push({
-        tool: '_cropUndo', prevImage, prevW, prevH, prevAnnotations
-      });
-      this.cropRegion = null;
-      this.isCropping = false;
-    };
-    img.src = tempCanvas.toDataURL('image/png');
-    return true;
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        this.baseImage = img;
+        this.annotations = [];
+        this.redoStack = [];
+        this.ctx.drawImage(img, 0, 0);
+        // Store crop undo info
+        this.annotations.push({
+          tool: '_cropUndo', prevImage, prevW, prevH, prevAnnotations
+        });
+        this.cropRegion = null;
+        this.isCropping = false;
+        resolve(true);
+      };
+      img.src = tempCanvas.toDataURL('image/png');
+    });
   }
 
   cancelCrop() {
@@ -1273,8 +1275,8 @@ class ScreenSnapPreview {
     `;
     this.canvasContainer.appendChild(div);
 
-    div.querySelector('.crop-confirm-btn').addEventListener('click', () => {
-      this.annotationTool.applyCrop();
+    div.querySelector('.crop-confirm-btn').addEventListener('click', async () => {
+      await this.annotationTool.applyCrop();
       div.remove();
       this.calcFitZooms();
       this.setZoom(this.fitWidthZoom);
@@ -1495,6 +1497,7 @@ class ScreenSnapPreview {
   }
 
   hideTextInput() {
+    this._isCalloutMode = false;
     this.textInputOverlay.classList.add('hidden');
     this.textArea.value = '';
   }
