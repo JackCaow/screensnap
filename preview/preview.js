@@ -458,31 +458,34 @@ class AnnotationTool {
   }
 
   // -- Crop --
+  _drawDimmedOverlay(left, top, width, height, dashed) {
+    const ctx = this.ctx;
+    const cw = this.canvas.width, ch = this.canvas.height;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    // Draw 4 rects around the crop region (not over it)
+    ctx.fillRect(0, 0, cw, top);                          // top
+    ctx.fillRect(0, top, left, height);                    // left
+    ctx.fillRect(left + width, top, cw - left - width, height); // right
+    ctx.fillRect(0, top + height, cw, ch - top - height);  // bottom
+    // Border
+    ctx.strokeStyle = '#8cb485';
+    ctx.lineWidth = 2;
+    if (dashed) ctx.setLineDash([6, 4]);
+    ctx.strokeRect(left, top, width, height);
+    if (dashed) ctx.setLineDash([]);
+    ctx.restore();
+  }
+
   drawCropPreview(x1, y1, x2, y2) {
     const { left, top, width, height } = this._normalizeRect(x1, y1, x2, y2);
-    this.ctx.save();
-    this.ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.clearRect(left, top, width, height);
-    this.ctx.strokeStyle = '#8cb485';
-    this.ctx.lineWidth = 2;
-    this.ctx.setLineDash([6, 4]);
-    this.ctx.strokeRect(left, top, width, height);
-    this.ctx.setLineDash([]);
-    this.ctx.restore();
+    this._drawDimmedOverlay(left, top, width, height, true);
   }
 
   _drawCropOverlay() {
     if (!this.cropRegion) return;
     const { left, top, width, height } = this.cropRegion;
-    this.ctx.save();
-    this.ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.clearRect(left, top, width, height);
-    this.ctx.strokeStyle = '#8cb485';
-    this.ctx.lineWidth = 2;
-    this.ctx.strokeRect(left, top, width, height);
-    this.ctx.restore();
+    this._drawDimmedOverlay(left, top, width, height, false);
   }
 
   applyCrop() {
