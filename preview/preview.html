@@ -205,6 +205,20 @@
 
     <div id="textInput" class="text-input-overlay hidden">
       <textarea id="textArea" data-i18n-placeholder="text_placeholder" placeholder="输入文字..."></textarea>
+      <div class="text-input-toolbar">
+        <select id="textFontSize" class="text-select">
+          <option value="16">16px</option>
+          <option value="20" selected>20px</option>
+          <option value="28">28px</option>
+          <option value="36">36px</option>
+          <option value="48">48px</option>
+          <option value="64">64px</option>
+        </select>
+        <button id="textBold" class="text-toggle-btn active" title="Bold"><b>B</b></button>
+        <button id="textItalic" class="text-toggle-btn" title="Italic"><i>I</i></button>
+        <span class="text-toolbar-divider"></span>
+        <input type="color" id="textColorPicker" class="text-color-input" value="#ef4444">
+      </div>
       <div class="text-input-actions">
         <button id="textCancel" class="btn btn-secondary" data-i18n="preview_cancel">取消</button>
         <button id="textConfirm" class="btn btn-primary" data-i18n="preview_confirm">确认</button>

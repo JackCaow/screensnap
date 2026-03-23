@@ -141,16 +141,19 @@ class AnnotationTool {
     this.redraw();
   }
 
-  addText(text) {
+  addText(text, opts = {}) {
     if (!this.textPosition || !text.trim()) return;
 
     this.annotations.push({
       tool: 'text',
-      color: this.color,
+      color: opts.color || this.color,
       strokeWidth: this.strokeWidth,
       x: this.textPosition.x,
       y: this.textPosition.y,
-      text: text
+      text: text,
+      fontSize: opts.fontSize || 20,
+      bold: opts.bold !== undefined ? opts.bold : true,
+      italic: opts.italic || false
     });
 
     this.redoStack = [];
@@ -296,8 +299,9 @@ class AnnotationTool {
     this.ctx.restore();
   }
 
-  drawText(x, y, text, color, fontSize) {
-    this.ctx.font = `bold ${fontSize || 20}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  drawText(x, y, text, color, fontSize, bold, italic) {
+    const style = `${italic ? 'italic ' : ''}${bold !== false ? 'bold ' : ''}${fontSize || 20}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    this.ctx.font = style;
     this.ctx.fillStyle = color;
     this.ctx.fillText(text, x, y);
   }
@@ -472,7 +476,9 @@ class AnnotationTool {
           annotation.y,
           annotation.text,
           annotation.color,
-          annotation.strokeWidth * 6
+          annotation.fontSize || annotation.strokeWidth * 6,
+          annotation.bold !== undefined ? annotation.bold : true,
+          annotation.italic || false
         );
         break;
       case 'number':
@@ -864,23 +870,21 @@ class ScreenSnapPreview {
     this.downloadBtn.addEventListener('click', () => this.download());
     this.copyBtn.addEventListener('click', () => this.copyToClipboard());
 
-    this.textConfirmBtn.addEventListener('click', () => {
-      this.annotationTool.addText(this.textArea.value);
-      this.saveAnnotations();
-      this.hideTextInput();
-    });
+    // Text toolbar controls
+    const textBoldBtn = document.getElementById('textBold');
+    const textItalicBtn = document.getElementById('textItalic');
 
-    this.textCancelBtn.addEventListener('click', () => {
-      this.hideTextInput();
-    });
+    textBoldBtn.addEventListener('click', () => textBoldBtn.classList.toggle('active'));
+    textItalicBtn.addEventListener('click', () => textItalicBtn.classList.toggle('active'));
+
+    this.textConfirmBtn.addEventListener('click', () => this._confirmText());
+    this.textCancelBtn.addEventListener('click', () => this.hideTextInput());
 
     // Enter to confirm text
     this.textArea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        this.annotationTool.addText(this.textArea.value);
-        this.saveAnnotations();
-        this.hideTextInput();
+        this._confirmText();
       }
       if (e.key === 'Escape') {
         this.hideTextInput();
@@ -888,9 +892,27 @@ class ScreenSnapPreview {
     });
   }
 
+  _confirmText() {
+    const fontSize = parseInt(document.getElementById('textFontSize').value);
+    const bold = document.getElementById('textBold').classList.contains('active');
+    const italic = document.getElementById('textItalic').classList.contains('active');
+    const color = document.getElementById('textColorPicker').value;
+
+    this.annotationTool.addText(this.textArea.value, { fontSize, bold, italic, color });
+    this.saveAnnotations();
+    this.hideTextInput();
+  }
+
   showTextInput() {
     this.textInputOverlay.classList.remove('hidden');
     this.textArea.value = '';
+
+    // Pre-fill controls with current settings
+    document.getElementById('textColorPicker').value = this.annotationTool.color;
+    document.getElementById('textFontSize').value = '20';
+    document.getElementById('textBold').classList.add('active');
+    document.getElementById('textItalic').classList.remove('active');
+
     this.textArea.focus();
   }
 
