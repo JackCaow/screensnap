@@ -982,7 +982,8 @@ class ScreenSnapPreview {
       const gifData = result._gif_pending;
 
       if (!gifData || gifData.id !== gifId) {
-        this.showError(i18n('gif_noFrames') || 'No GIF frames found');
+        // Pending frames already consumed — try loading the saved GIF
+        await this.loadSavedGif(gifId);
         return;
       }
 
