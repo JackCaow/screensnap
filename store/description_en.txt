@@ -1,28 +1,36 @@
-ScreenSnap — Professional Screenshot & Annotation Tool
+ScreenSnap — Professional Screenshot, GIF Recording & Annotation Tool
 
-Capture any part of a webpage with ease. ScreenSnap offers three capture modes, a powerful built-in annotation editor, and screenshot history — all running locally with zero data collection.
+Capture, record, and annotate any part of a webpage. ScreenSnap offers four capture modes, a full-featured annotation editor, and screenshot history — all running 100% locally with zero data collection.
 
 CAPTURE MODES
-- Region Screenshot (Alt+Shift+S): Drag to select any area on the page
-- Visible Area (Alt+Shift+A): Capture exactly what you see
-- Full Page (Alt+Shift+F): Auto-scroll and stitch the entire page into one image, with smart sticky header removal
+- Region Screenshot (Alt+Shift+S): Drag to select any area, fine-tune with arrow keys
+- Visible Area (Alt+Shift+A): Capture exactly what you see in one click
+- Full Page: Auto-scroll and stitch the entire page, smart sticky header removal
+- GIF Recording (Alt+Shift+G): Select a region and record up to 15s of animated GIF
 
 ANNOTATION EDITOR
-- Shapes: Rectangle, dashed rectangle, rounded rectangle, ellipse
+- Shapes: Rectangle, rounded rectangle, dashed rectangle, ellipse
 - Arrows: Single and double-headed arrows, straight lines
 - Drawing: Freehand pen and highlighter
-- Text & Numbers: Add labels and numbered markers
-- Privacy: Mosaic and blur tools to redact sensitive content
-- Full undo/redo support with keyboard shortcuts
+- Text: Customizable font size, bold, italic, and color
+- Callout Bubbles: Speech bubble with smooth rounded tail, auto-sized to text
+- Stamps: Quick marks — checkmarks, stars, emoji, and more
+- Numbers: Sequential numbered markers
+- Mosaic & Blur: Redact sensitive information
+- Spotlight: Dim background to highlight a focus area
+- Magnifier: Zoom into fine details
+- Crop: Re-frame your screenshot after capture
+- Full undo/redo, keyboard shortcuts for every tool
 
 FEATURES
-- Screenshot history with thumbnails, search, and type filter
-- Save as PNG, JPG, or WebP with adjustable quality
+- Screenshot history with thumbnails, search, and type filter (screenshot / GIF)
+- Save as PNG, JPG, or WebP with adjustable quality; GIF direct download
 - Copy to clipboard with one click
 - Right-click context menu for quick capture
 - Customizable default colors and stroke width
 - Zoom controls with mouse wheel support
-- Bilingual: English and Chinese (Simplified)
+- Collapsible toolbar groups — clean, compact UI
+- 7 languages: English, 中文简体, 中文繁體, 日本語, 한국어, Español, Português
 
 PRIVACY
-All data stays on your device. No analytics, no tracking, no external servers. Open-source under MIT License.
+All data stays on your device. No accounts, no analytics, no tracking, no external servers. Lightweight and open-source under MIT License.

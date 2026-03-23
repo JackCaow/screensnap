@@ -1,0 +1,36 @@
+ScreenSnap — Ferramenta profissional de capturas, gravação GIF e anotações
+
+Capture, grave e anote qualquer parte de uma página web. ScreenSnap oferece quatro modos de captura, um editor completo de anotações e histórico de capturas — tudo funciona 100% localmente, sem coleta de dados.
+
+MODOS DE CAPTURA
+- Seleção de área (Alt+Shift+S): Arraste para selecionar qualquer região, ajuste com teclas direcionais
+- Área visível (Alt+Shift+A): Capture o que você vê com um clique
+- Página inteira: Rolagem automática e costura da página completa, remoção inteligente de cabeçalhos fixos
+- Gravação GIF (Alt+Shift+G): Grave uma região selecionada como GIF animado de até 15 segundos
+
+EDITOR DE ANOTAÇÕES
+- Formas: Retângulo, retângulo arredondado, retângulo tracejado, elipse
+- Setas: Setas simples e duplas, linhas retas
+- Desenho: Caneta livre e marca-texto
+- Texto: Tamanho da fonte, negrito, itálico e cor personalizáveis
+- Balões: Balões de fala com cauda suave, tamanho automático conforme o texto
+- Carimbos: Marcas rápidas — verificações, estrelas, emojis e mais
+- Números: Marcadores numerados sequenciais
+- Mosaico / Desfoque: Oculte informações sensíveis
+- Holofote: Escureça o fundo para destacar uma área
+- Lupa: Amplie detalhes
+- Recorte: Reenquadre após a captura
+- Desfazer/refazer completo, atalhos de teclado para cada ferramenta
+
+RECURSOS
+- Histórico de capturas: Miniaturas, busca e filtro por tipo (imagem/GIF)
+- Salvar em PNG, JPG ou WebP com qualidade ajustável; download direto de GIF
+- Copiar para a área de transferência com um clique
+- Menu de contexto para captura rápida
+- Cores e espessura de linha padrão personalizáveis
+- Controles de zoom com suporte a roda do mouse
+- Barra de ferramentas com grupos recolhíveis — interface limpa e compacta
+- 7 idiomas: Português, English, 中文简体, 中文繁體, 日本語, 한국어, Español
+
+PRIVACIDADE
+Todos os dados ficam no seu dispositivo. Sem contas, sem análises, sem rastreamento, sem servidores externos. Leve e de código aberto sob licença MIT.
