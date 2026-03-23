@@ -622,8 +622,8 @@ class AnnotationTool {
     // Determine which edge the tail connects to and the two anchor points
     const cx = boxX + boxW / 2;
     const cy = boxY + boxH / 2;
-    const r = 6; // border radius
-    const gap = 10; // half-width of tail base
+    const r = 8; // border radius (slightly larger for softer feel)
+    const gap = 12; // half-width of tail base (wider = more natural)
 
     // Clamp tail anchor to the nearest edge
     let a1x, a1y, a2x, a2y;
@@ -648,40 +648,82 @@ class AnnotationTool {
       }
     }
 
-    // 1) Fill box background
+    // Build a unified bubble path: rounded rect with a notch for the tail
+    // The path goes clockwise around the box, inserting the tail at the right edge
+    function bubblePath() {
+      const x0 = boxX, y0 = boxY, x1 = boxX + boxW, y1 = boxY + boxH;
+      ctx.beginPath();
+
+      // Determine which edge the tail is on
+      const _dx = tailX - cx, _dy = tailY - cy;
+      const onBottom = !(Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dy >= 0;
+      const onTop = !(Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dy < 0;
+      const onRight = (Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dx >= 0;
+      const onLeft = (Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dx < 0;
+
+      // Start from top-left corner, go clockwise
+      ctx.moveTo(x0 + r, y0);
+
+      // Helper: draw tail with quadratic curves for smooth rounded shape
+      function tailCurve(ax1, ay1, ax2, ay2) {
+        // Control points: slight curve at base, meet at sharp (but rounded) tip
+        const cpx1 = ax1 + (tailX - ax1) * 0.15;
+        const cpy1 = ay1 + (tailY - ay1) * 0.15;
+        const cpx2 = ax2 + (tailX - ax2) * 0.15;
+        const cpy2 = ay2 + (tailY - ay2) * 0.15;
+
+        ctx.lineTo(ax1, ay1);
+        ctx.quadraticCurveTo(cpx1, cpy1, tailX, tailY);
+        ctx.quadraticCurveTo(cpx2, cpy2, ax2, ay2);
+      }
+
+      // Top edge
+      if (onTop) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x1 - r, y0);
+      ctx.arcTo(x1, y0, x1, y0 + r, r); // top-right corner
+
+      // Right edge
+      if (onRight) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x1, y1 - r);
+      ctx.arcTo(x1, y1, x1 - r, y1, r); // bottom-right corner
+
+      // Bottom edge (path goes right-to-left: x1 → x0)
+      if (onBottom) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x0 + r, y1);
+      ctx.arcTo(x0, y1, x0, y1 - r, r); // bottom-left corner
+
+      // Left edge
+      if (onLeft) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x0, y0 + r);
+      ctx.arcTo(x0, y0, x0 + r, y0, r); // top-left corner
+
+      ctx.closePath();
+    }
+
+    // Subtle drop shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3;
+
+    // Fill bubble background
     ctx.fillStyle = color;
     ctx.globalAlpha = 0.15;
-    ctx.beginPath();
-    ctx.roundRect(boxX, boxY, boxW, boxH, r);
+    bubblePath();
     ctx.fill();
 
-    // 2) Fill tail triangle, clipped to OUTSIDE the box so no overlap
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.roundRect(boxX, boxY, boxW, boxH, r);
-    ctx.clip('evenodd'); // clip = everything EXCEPT the box
-    ctx.beginPath();
-    ctx.moveTo(a1x, a1y);
-    ctx.lineTo(tailX, tailY);
-    ctx.lineTo(a2x, a2y);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+    // Reset shadow before stroke (avoid double shadow)
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
     ctx.globalAlpha = 1;
 
-    // 3) Stroke box border
+    // Stroke bubble outline
     ctx.strokeStyle = color;
     ctx.lineWidth = strokeWidth;
-    ctx.beginPath();
-    ctx.roundRect(boxX, boxY, boxW, boxH, r);
-    ctx.stroke();
-
-    // 4) Stroke tail lines only (two sides, not the base)
-    ctx.beginPath();
-    ctx.moveTo(a1x, a1y);
-    ctx.lineTo(tailX, tailY);
-    ctx.lineTo(a2x, a2y);
+    ctx.lineJoin = 'round';
+    bubblePath();
     ctx.stroke();
 
     // Draw text inside box
@@ -1089,13 +1131,86 @@ class ScreenSnapPreview {
   }
 
   setupToolbar() {
-    // Tool buttons
+    // Initialize tool groups — each group shows only one "representative" button
+    this.toolbar.querySelectorAll('.tool-group').forEach(group => {
+      const buttons = group.querySelectorAll('.tool-btn[data-tool]');
+      if (buttons.length === 0) return;
+
+      // Mark first button as the group representative
+      buttons[0].classList.add('group-active');
+
+      // Create dropdown panel
+      const dropdown = document.createElement('div');
+      dropdown.className = 'tool-group-dropdown';
+
+      // Clone buttons into dropdown
+      buttons.forEach(btn => {
+        const clone = btn.cloneNode(true);
+        clone.classList.remove('group-active');
+        dropdown.appendChild(clone);
+      });
+      group.appendChild(dropdown);
+
+      // Click on group-active button → toggle dropdown
+      group.addEventListener('click', (e) => {
+        const activeBtn = group.querySelector('.group-active');
+        const clickedBtn = e.target.closest('.tool-btn[data-tool]');
+
+        if (!clickedBtn) return;
+
+        // If clicking the representative button itself, toggle dropdown
+        if (clickedBtn === activeBtn) {
+          e.stopPropagation();
+          // Close other dropdowns
+          this.toolbar.querySelectorAll('.tool-group-dropdown.visible').forEach(d => {
+            if (d !== dropdown) d.classList.remove('visible');
+          });
+          dropdown.classList.toggle('visible');
+          return;
+        }
+
+        // If clicking a button inside the dropdown
+        if (clickedBtn.closest('.tool-group-dropdown')) {
+          e.stopPropagation();
+          const tool = clickedBtn.dataset.tool;
+
+          // Update group representative
+          const originalBtn = group.querySelector(`.tool-btn[data-tool="${tool}"]:not(.tool-group-dropdown .tool-btn)`);
+          if (originalBtn) {
+            buttons.forEach(b => b.classList.remove('group-active'));
+            originalBtn.classList.add('group-active');
+          }
+
+          // Close dropdown
+          dropdown.classList.remove('visible');
+
+          // Activate the tool
+          this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+          if (originalBtn) originalBtn.classList.add('active');
+          this.annotationTool.setTool(tool);
+          return;
+        }
+      });
+    });
+
+    // Tool buttons (non-grouped ones like select, crop)
     this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+      if (btn.closest('.tool-group-dropdown')) return; // skip dropdown clones
       btn.addEventListener('click', () => {
+        // Close any open dropdowns
+        this.toolbar.querySelectorAll('.tool-group-dropdown.visible').forEach(d => d.classList.remove('visible'));
+        // Don't re-handle group buttons (they're handled above)
+        if (btn.closest('.tool-group') && btn.classList.contains('group-active')) return;
+
         this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.annotationTool.setTool(btn.dataset.tool);
       });
+    });
+
+    // Close dropdowns when clicking elsewhere
+    document.addEventListener('click', () => {
+      this.toolbar.querySelectorAll('.tool-group-dropdown.visible').forEach(d => d.classList.remove('visible'));
     });
 
     this.toolbar.querySelector('[data-tool="select"]').classList.add('active');
@@ -1457,11 +1572,19 @@ class ScreenSnapPreview {
 
       if (!e.ctrlKey && !e.metaKey && toolShortcuts[e.key.toLowerCase()]) {
         const tool = toolShortcuts[e.key.toLowerCase()];
-        const btn = this.toolbar.querySelector(`[data-tool="${tool}"]`);
+        // Find the non-dropdown button for this tool
+        const btn = this.toolbar.querySelector(`.tool-btn[data-tool="${tool}"]:not(.tool-group-dropdown .tool-btn)`);
         if (btn) {
           this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           this.annotationTool.setTool(tool);
+
+          // Update group representative if tool is in a group
+          const group = btn.closest('.tool-group');
+          if (group) {
+            group.querySelectorAll(':scope > .tool-btn').forEach(b => b.classList.remove('group-active'));
+            btn.classList.add('group-active');
+          }
         }
         return;
       }
