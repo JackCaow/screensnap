@@ -63,7 +63,8 @@ body {
   background: rgba(33, 43, 31, 0.8);
   backdrop-filter: blur(12px);
   flex-shrink: 0;
-  z-index: 10;
+  z-index: 200;
+  position: relative;
 }
 
 .header-top {
