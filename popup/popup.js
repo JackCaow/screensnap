@@ -180,5 +180,6 @@ class ScreenSnapPopup {
 document.addEventListener('DOMContentLoaded', async () => {
   await initI18n();
   applyI18n();
+  document.getElementById('version').textContent = 'v' + chrome.runtime.getManifest().version;
   new ScreenSnapPopup();
 });

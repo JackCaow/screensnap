@@ -1,162 +1,474 @@
 {
-  "extName": { "message": "ScreenSnap" },
-  "extDescription": { "message": "Herramienta profesional de capturas — captura el área visible o la página completa fácilmente" },
-
-  "cmd_captureRegion": { "message": "Capturar región" },
-  "cmd_captureVisible": { "message": "Capturar área visible" },
-  "cmd_captureFullpage": { "message": "Captura de página completa" },
-  "cmd_captureGif": { "message": "Grabar GIF" },
-
-  "popup_captureRegion": { "message": "Capturar región" },
-  "popup_captureVisible": { "message": "Capturar área visible" },
-  "popup_captureFullpage": { "message": "Página completa" },
-  "popup_capturing": { "message": "Capturando..." },
-  "popup_capturingProgress": { "message": "Capturando... $PROGRESS$%", "placeholders": { "PROGRESS": { "content": "$1" } } },
-  "popup_capturingScreen": { "message": "Capturando área visible..." },
-  "popup_preparingFullpage": { "message": "Preparando captura de página completa..." },
-  "popup_startRegionFailed": { "message": "Error al iniciar la selección de región" },
-  "popup_captureFailed": { "message": "Error en la captura" },
-  "popup_fullpageFailed": { "message": "Error en la captura de página completa" },
-  "popup_storageFailed": { "message": "La captura es demasiado grande para almacenar" },
-
-  "error_noTab": { "message": "No se puede acceder a la pestaña actual" },
-  "error_internalPage": { "message": "No se pueden capturar páginas internas del navegador" },
-  "error_captureFailed": { "message": "Error en la captura" },
-  "error_fullpageFailed": { "message": "Error en la captura de página completa" },
-  "error_noPageInfo": { "message": "No se puede obtener la información de la página" },
-  "error_regionFailed": { "message": "Error en la captura de región" },
-  "error_startRegionFailed": { "message": "Error al iniciar la selección de región" },
-  "status_capturing": { "message": "Capturando página..." },
-  "status_merging": { "message": "Combinando capturas..." },
-
-  "preview_title": { "message": "Vista previa - ScreenSnap" },
-  "preview_loading": { "message": "Cargando..." },
-  "preview_copy": { "message": "Copiar" },
-  "preview_save": { "message": "Guardar" },
-  "preview_cancel": { "message": "Cancelar" },
-  "preview_confirm": { "message": "Aceptar" },
-
-  "tool_select": { "message": "Seleccionar (V)" },
-  "tool_rect": { "message": "Rectángulo (R)" },
-  "tool_ellipse": { "message": "Elipse (O)" },
-  "tool_arrow": { "message": "Flecha (A)" },
-  "tool_line": { "message": "Línea (L)" },
-  "tool_pen": { "message": "Lápiz (P)" },
-  "tool_highlighter": { "message": "Resaltador (H)" },
-  "tool_text": { "message": "Texto (T)" },
-  "tool_number": { "message": "Número (N)" },
-  "tool_dashedRect": { "message": "Rect. discontinuo (D)" },
-  "tool_roundedRect": { "message": "Rect. redondeado (U)" },
-  "tool_doubleArrow": { "message": "Flecha doble (W)" },
-  "tool_mosaic": { "message": "Mosaico (M)" },
-  "tool_blur": { "message": "Difuminar (B)" },
-
-  "toolgroup_shapes": { "message": "Formas" },
-  "toolgroup_draw": { "message": "Dibujar" },
-  "toolgroup_mark": { "message": "Marcar" },
-  "toolgroup_mask": { "message": "Ocultar" },
-
-  "color_select": { "message": "Elegir color" },
-  "color_red": { "message": "Rojo" },
-  "color_orange": { "message": "Naranja" },
-  "color_yellow": { "message": "Amarillo" },
-  "color_yellowGreen": { "message": "Verde amarillo" },
-  "color_green": { "message": "Verde" },
-  "color_cyan": { "message": "Cian" },
-  "color_blue": { "message": "Azul" },
-  "color_purple": { "message": "Púrpura" },
-  "color_pink": { "message": "Rosa" },
-  "color_rose": { "message": "Rosado" },
-  "color_white": { "message": "Blanco" },
-  "color_black": { "message": "Negro" },
-  "color_custom": { "message": "Color personalizado" },
-  "color_customLabel": { "message": "Personalizado" },
-
-  "stroke_select": { "message": "Grosor de línea" },
-  "stroke_thin": { "message": "Fino" },
-  "stroke_medium": { "message": "Medio" },
-  "stroke_thick": { "message": "Grueso" },
-  "stroke_extraThick": { "message": "Extra grueso" },
-
-  "action_undo": { "message": "Deshacer (Ctrl+Z)" },
-  "action_redo": { "message": "Rehacer (Ctrl+Y)" },
-  "action_clear": { "message": "Borrar anotaciones" },
-  "action_copyClipboard": { "message": "Copiar al portapapeles (Ctrl+C)" },
-  "action_saveLocal": { "message": "Guardar (Ctrl+S)" },
-
-  "zoom_out": { "message": "Alejar (Ctrl+-)" },
-  "zoom_in": { "message": "Acercar (Ctrl+=)" },
-  "zoom_clickFitWidth": { "message": "Clic para ajustar al ancho" },
-  "zoom_fitWidth": { "message": "Ajustar al ancho (Ctrl+0)" },
-  "zoom_fitView": { "message": "Ajustar a la ventana" },
-
-  "text_placeholder": { "message": "Escribir texto..." },
-
-  "confirm_clearAll": { "message": "¿Borrar todas las anotaciones?" },
-  "error_noScreenshot": { "message": "No se encontró la captura" },
-  "error_screenshotExpired": { "message": "Los datos de la captura han expirado" },
-  "error_imageLoadFailed": { "message": "Error al cargar la imagen" },
-  "error_loadFailed": { "message": "Error al cargar la captura" },
-  "toast_saved": { "message": "Captura guardada" },
-  "toast_saveFailed": { "message": "Error al guardar: $ERROR$", "placeholders": { "ERROR": { "content": "$1" } } },
-  "toast_copied": { "message": "Copiado al portapapeles" },
-  "toast_copyFailed": { "message": "Error al copiar" },
-
-  "selector_hint": { "message": "Arrastra para seleccionar la región. ESC para cancelar" },
-  "selector_cancel": { "message": "Cancelar" },
-  "selector_confirm": { "message": "Capturar" },
-
-  "options_title": { "message": "Ajustes" },
-  "options_saveFormat": { "message": "Formato de guardado" },
-  "options_imageQuality": { "message": "Calidad de imagen" },
-  "options_qualityLow": { "message": "Baja" },
-  "options_qualityHigh": { "message": "Alta" },
-  "options_defaultColor": { "message": "Color de anotación predeterminado" },
-  "options_defaultStroke": { "message": "Grosor de línea predeterminado" },
-  "options_autoPreview": { "message": "Abrir vista previa tras capturar" },
-  "options_language": { "message": "Idioma" },
-  "options_languageAuto": { "message": "Automático (navegador)" },
-  "options_languageReload": { "message": "Recarga la página para aplicar el cambio de idioma" },
-  "options_saved": { "message": "Ajustes guardados" },
-
-  "history_title": { "message": "Historial de capturas - ScreenSnap" },
-  "history_heading": { "message": "Historial de capturas" },
-  "history_searchPlaceholder": { "message": "Buscar..." },
-  "history_filterAll": { "message": "Todas" },
-  "history_filterVisible": { "message": "Visible" },
-  "history_filterFullpage": { "message": "Página completa" },
-  "history_filterRegion": { "message": "Región" },
-  "history_statsCount": { "message": "Mostrando $SHOWN$ de $TOTAL$", "placeholders": { "SHOWN": { "content": "$1" }, "TOTAL": { "content": "$2" } } },
-  "history_clearAll": { "message": "Borrar todo" },
-  "history_clearAllTitle": { "message": "Borrar todas las capturas" },
-  "history_clearAllDesc": { "message": "Se eliminarán todas las capturas permanentemente. ¿Continuar?" },
-  "history_clearAllConfirm": { "message": "Borrar todo" },
-  "history_clearedAll": { "message": "Todas las capturas han sido eliminadas" },
-  "history_delete": { "message": "Eliminar" },
-  "history_deleteConfirmTitle": { "message": "Eliminar captura" },
-  "history_deleteConfirmDesc": { "message": "Esta captura se eliminará permanentemente. ¿Continuar?" },
-  "history_deleted": { "message": "Captura eliminada" },
-  "history_deleteFailed": { "message": "Error al eliminar la captura" },
-  "history_untitled": { "message": "Captura sin título" },
-  "history_emptyTitle": { "message": "Sin capturas aún" },
-  "history_emptyDesc": { "message": "Las capturas realizadas aparecerán aquí" },
-  "history_today": { "message": "Hoy" },
-  "history_yesterday": { "message": "Ayer" },
-  "history_daysAgo": { "message": "Hace $DAYS$ días", "placeholders": { "DAYS": { "content": "$1" } } },
-  "history_typeVisible": { "message": "Visible" },
-  "history_typeFullpage": { "message": "Página completa" },
-  "history_typeRegion": { "message": "Región" },
-  "history_typeGif": { "message": "GIF" },
-  "history_filterGif": { "message": "GIF" },
-
-  "popup_captureGif": { "message": "Grabar GIF" },
-
-  "gif_selectHint": { "message": "Arrastra para seleccionar el área de grabación" },
-  "gif_record": { "message": "Grabar" },
-  "gif_stop": { "message": "Detener" },
-  "gif_startFailed": { "message": "Error al iniciar la grabación GIF" },
-  "gif_encoding": { "message": "Codificando GIF..." },
-  "gif_encodingProgress": { "message": "Codificando GIF... $PERCENT$%", "placeholders": { "PERCENT": { "content": "$1" } } },
-  "gif_encodingFailed": { "message": "Error en la codificación GIF" },
-  "gif_noFrames": { "message": "No se encontraron cuadros GIF" }
+  "extName": {
+    "message": "ScreenSnap"
+  },
+  "extDescription": {
+    "message": "Herramienta profesional de capturas — captura el área visible o la página completa fácilmente"
+  },
+  "cmd_captureRegion": {
+    "message": "Capturar región"
+  },
+  "cmd_captureVisible": {
+    "message": "Capturar área visible"
+  },
+  "cmd_captureFullpage": {
+    "message": "Captura de página completa"
+  },
+  "cmd_captureGif": {
+    "message": "Grabar GIF"
+  },
+  "popup_captureRegion": {
+    "message": "Capturar región"
+  },
+  "popup_captureVisible": {
+    "message": "Capturar área visible"
+  },
+  "popup_captureFullpage": {
+    "message": "Página completa"
+  },
+  "popup_capturing": {
+    "message": "Capturando..."
+  },
+  "popup_capturingProgress": {
+    "message": "Capturando... $PROGRESS$%",
+    "placeholders": {
+      "PROGRESS": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_capturingScreen": {
+    "message": "Capturando área visible..."
+  },
+  "popup_preparingFullpage": {
+    "message": "Preparando captura de página completa..."
+  },
+  "popup_startRegionFailed": {
+    "message": "Error al iniciar la selección de región"
+  },
+  "popup_captureFailed": {
+    "message": "Error en la captura"
+  },
+  "popup_fullpageFailed": {
+    "message": "Error en la captura de página completa"
+  },
+  "popup_storageFailed": {
+    "message": "La captura es demasiado grande para almacenar"
+  },
+  "error_noTab": {
+    "message": "No se puede acceder a la pestaña actual"
+  },
+  "error_internalPage": {
+    "message": "No se pueden capturar páginas internas del navegador"
+  },
+  "error_captureFailed": {
+    "message": "Error en la captura"
+  },
+  "error_fullpageFailed": {
+    "message": "Error en la captura de página completa"
+  },
+  "error_noPageInfo": {
+    "message": "No se puede obtener la información de la página"
+  },
+  "error_regionFailed": {
+    "message": "Error en la captura de región"
+  },
+  "error_startRegionFailed": {
+    "message": "Error al iniciar la selección de región"
+  },
+  "status_capturing": {
+    "message": "Capturando página..."
+  },
+  "status_merging": {
+    "message": "Combinando capturas..."
+  },
+  "preview_title": {
+    "message": "Vista previa - ScreenSnap"
+  },
+  "preview_loading": {
+    "message": "Cargando..."
+  },
+  "preview_copy": {
+    "message": "Copiar"
+  },
+  "preview_save": {
+    "message": "Guardar"
+  },
+  "preview_cancel": {
+    "message": "Cancelar"
+  },
+  "preview_confirm": {
+    "message": "Aceptar"
+  },
+  "tool_select": {
+    "message": "Seleccionar (V)"
+  },
+  "tool_rect": {
+    "message": "Rectángulo (R)"
+  },
+  "tool_ellipse": {
+    "message": "Elipse (O)"
+  },
+  "tool_arrow": {
+    "message": "Flecha (A)"
+  },
+  "tool_line": {
+    "message": "Línea (L)"
+  },
+  "tool_pen": {
+    "message": "Lápiz (P)"
+  },
+  "tool_highlighter": {
+    "message": "Resaltador (H)"
+  },
+  "tool_text": {
+    "message": "Texto (T)"
+  },
+  "tool_number": {
+    "message": "Número (N)"
+  },
+  "tool_dashedRect": {
+    "message": "Rect. discontinuo (D)"
+  },
+  "tool_roundedRect": {
+    "message": "Rect. redondeado (U)"
+  },
+  "tool_doubleArrow": {
+    "message": "Flecha doble (W)"
+  },
+  "tool_mosaic": {
+    "message": "Mosaico (M)"
+  },
+  "tool_blur": {
+    "message": "Difuminar (B)"
+  },
+  "toolgroup_shapes": {
+    "message": "Formas"
+  },
+  "toolgroup_draw": {
+    "message": "Dibujar"
+  },
+  "toolgroup_mark": {
+    "message": "Marcar"
+  },
+  "toolgroup_mask": {
+    "message": "Ocultar"
+  },
+  "color_select": {
+    "message": "Elegir color"
+  },
+  "color_red": {
+    "message": "Rojo"
+  },
+  "color_orange": {
+    "message": "Naranja"
+  },
+  "color_yellow": {
+    "message": "Amarillo"
+  },
+  "color_yellowGreen": {
+    "message": "Verde amarillo"
+  },
+  "color_green": {
+    "message": "Verde"
+  },
+  "color_cyan": {
+    "message": "Cian"
+  },
+  "color_blue": {
+    "message": "Azul"
+  },
+  "color_purple": {
+    "message": "Púrpura"
+  },
+  "color_pink": {
+    "message": "Rosa"
+  },
+  "color_rose": {
+    "message": "Rosado"
+  },
+  "color_white": {
+    "message": "Blanco"
+  },
+  "color_black": {
+    "message": "Negro"
+  },
+  "color_custom": {
+    "message": "Color personalizado"
+  },
+  "color_customLabel": {
+    "message": "Personalizado"
+  },
+  "stroke_select": {
+    "message": "Grosor de línea"
+  },
+  "stroke_thin": {
+    "message": "Fino"
+  },
+  "stroke_medium": {
+    "message": "Medio"
+  },
+  "stroke_thick": {
+    "message": "Grueso"
+  },
+  "stroke_extraThick": {
+    "message": "Extra grueso"
+  },
+  "action_undo": {
+    "message": "Deshacer (Ctrl+Z)"
+  },
+  "action_redo": {
+    "message": "Rehacer (Ctrl+Y)"
+  },
+  "action_clear": {
+    "message": "Borrar anotaciones"
+  },
+  "action_copyClipboard": {
+    "message": "Copiar al portapapeles (Ctrl+C)"
+  },
+  "action_saveLocal": {
+    "message": "Guardar (Ctrl+S)"
+  },
+  "zoom_out": {
+    "message": "Alejar (Ctrl+-)"
+  },
+  "zoom_in": {
+    "message": "Acercar (Ctrl+=)"
+  },
+  "zoom_clickFitWidth": {
+    "message": "Clic para ajustar al ancho"
+  },
+  "zoom_fitWidth": {
+    "message": "Ajustar al ancho (Ctrl+0)"
+  },
+  "zoom_fitView": {
+    "message": "Ajustar a la ventana"
+  },
+  "text_placeholder": {
+    "message": "Escribir texto..."
+  },
+  "confirm_clearAll": {
+    "message": "¿Borrar todas las anotaciones?"
+  },
+  "error_noScreenshot": {
+    "message": "No se encontró la captura"
+  },
+  "error_screenshotExpired": {
+    "message": "Los datos de la captura han expirado"
+  },
+  "error_imageLoadFailed": {
+    "message": "Error al cargar la imagen"
+  },
+  "error_loadFailed": {
+    "message": "Error al cargar la captura"
+  },
+  "toast_saved": {
+    "message": "Captura guardada"
+  },
+  "toast_saveFailed": {
+    "message": "Error al guardar: $ERROR$",
+    "placeholders": {
+      "ERROR": {
+        "content": "$1"
+      }
+    }
+  },
+  "toast_copied": {
+    "message": "Copiado al portapapeles"
+  },
+  "toast_copyFailed": {
+    "message": "Error al copiar"
+  },
+  "selector_hint": {
+    "message": "Arrastra para seleccionar la región. ESC para cancelar"
+  },
+  "selector_cancel": {
+    "message": "Cancelar"
+  },
+  "selector_confirm": {
+    "message": "Capturar"
+  },
+  "options_title": {
+    "message": "Ajustes"
+  },
+  "options_saveFormat": {
+    "message": "Formato de guardado"
+  },
+  "options_imageQuality": {
+    "message": "Calidad de imagen"
+  },
+  "options_qualityLow": {
+    "message": "Baja"
+  },
+  "options_qualityHigh": {
+    "message": "Alta"
+  },
+  "options_defaultColor": {
+    "message": "Color de anotación predeterminado"
+  },
+  "options_defaultStroke": {
+    "message": "Grosor de línea predeterminado"
+  },
+  "options_autoPreview": {
+    "message": "Abrir vista previa tras capturar"
+  },
+  "options_language": {
+    "message": "Idioma"
+  },
+  "options_languageAuto": {
+    "message": "Automático (navegador)"
+  },
+  "options_languageReload": {
+    "message": "Recarga la página para aplicar el cambio de idioma"
+  },
+  "options_saved": {
+    "message": "Ajustes guardados"
+  },
+  "history_title": {
+    "message": "Historial de capturas - ScreenSnap"
+  },
+  "history_heading": {
+    "message": "Historial de capturas"
+  },
+  "history_searchPlaceholder": {
+    "message": "Buscar..."
+  },
+  "history_filterAll": {
+    "message": "Todas"
+  },
+  "history_filterVisible": {
+    "message": "Visible"
+  },
+  "history_filterFullpage": {
+    "message": "Página completa"
+  },
+  "history_filterRegion": {
+    "message": "Región"
+  },
+  "history_statsCount": {
+    "message": "Mostrando $SHOWN$ de $TOTAL$",
+    "placeholders": {
+      "SHOWN": {
+        "content": "$1"
+      },
+      "TOTAL": {
+        "content": "$2"
+      }
+    }
+  },
+  "history_clearAll": {
+    "message": "Borrar todo"
+  },
+  "history_clearAllTitle": {
+    "message": "Borrar todas las capturas"
+  },
+  "history_clearAllDesc": {
+    "message": "Se eliminarán todas las capturas permanentemente. ¿Continuar?"
+  },
+  "history_clearAllConfirm": {
+    "message": "Borrar todo"
+  },
+  "history_clearedAll": {
+    "message": "Todas las capturas han sido eliminadas"
+  },
+  "history_delete": {
+    "message": "Eliminar"
+  },
+  "history_deleteConfirmTitle": {
+    "message": "Eliminar captura"
+  },
+  "history_deleteConfirmDesc": {
+    "message": "Esta captura se eliminará permanentemente. ¿Continuar?"
+  },
+  "history_deleted": {
+    "message": "Captura eliminada"
+  },
+  "history_deleteFailed": {
+    "message": "Error al eliminar la captura"
+  },
+  "history_untitled": {
+    "message": "Captura sin título"
+  },
+  "history_emptyTitle": {
+    "message": "Sin capturas aún"
+  },
+  "history_emptyDesc": {
+    "message": "Las capturas realizadas aparecerán aquí"
+  },
+  "history_today": {
+    "message": "Hoy"
+  },
+  "history_yesterday": {
+    "message": "Ayer"
+  },
+  "history_daysAgo": {
+    "message": "Hace $DAYS$ días",
+    "placeholders": {
+      "DAYS": {
+        "content": "$1"
+      }
+    }
+  },
+  "history_typeVisible": {
+    "message": "Visible"
+  },
+  "history_typeFullpage": {
+    "message": "Página completa"
+  },
+  "history_typeRegion": {
+    "message": "Región"
+  },
+  "history_typeGif": {
+    "message": "GIF"
+  },
+  "history_filterGif": {
+    "message": "GIF"
+  },
+  "popup_captureGif": {
+    "message": "Grabar GIF"
+  },
+  "gif_selectHint": {
+    "message": "Arrastra para seleccionar el área de grabación"
+  },
+  "gif_record": {
+    "message": "Grabar"
+  },
+  "gif_stop": {
+    "message": "Detener"
+  },
+  "gif_startFailed": {
+    "message": "Error al iniciar la grabación GIF"
+  },
+  "gif_encoding": {
+    "message": "Codificando GIF..."
+  },
+  "gif_encodingProgress": {
+    "message": "Codificando GIF... $PERCENT$%",
+    "placeholders": {
+      "PERCENT": {
+        "content": "$1"
+      }
+    }
+  },
+  "gif_encodingFailed": {
+    "message": "Error en la codificación GIF"
+  },
+  "gif_noFrames": {
+    "message": "No se encontraron cuadros GIF"
+  },
+  "tool_crop": {
+    "message": "Recortar (C)"
+  },
+  "tool_callout": {
+    "message": "Llamada (K)"
+  },
+  "tool_stamp": {
+    "message": "Sello (E)"
+  },
+  "tool_magnify": {
+    "message": "Lupa (G)"
+  },
+  "tool_spotlight": {
+    "message": "Foco (J)"
+  }
 }

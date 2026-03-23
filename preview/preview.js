@@ -19,11 +19,26 @@ class AnnotationTool {
     this.strokeWidth = 2;
     this.textPosition = null;
     this.numberCounter = 1;
+    // Selection state for move/resize
+    this.selectedIndex = -1;
+    this.dragMode = null; // 'move' | 'resize-XX'
+    this.dragStart = null;
+    this.dragOriginal = null;
+    // Stamp state
+    this.currentStamp = '✓';
+    this.stampSize = 32;
+    // Crop state
+    this.cropRegion = null;
+    this.isCropping = false;
   }
 
   setTool(tool) {
     this.currentTool = tool;
+    this.selectedIndex = -1;
+    this.cropRegion = null;
+    this.isCropping = false;
     this.canvas.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    this.redraw();
   }
 
   setColor(color) {
@@ -90,6 +105,18 @@ class AnnotationTool {
       case 'blur':
         this.drawMosaicPreview(this.startX, this.startY, x, y);
         break;
+      case 'crop':
+        this.drawCropPreview(this.startX, this.startY, x, y);
+        break;
+      case 'callout':
+        // No drag preview — click to place
+        break;
+      case 'spotlight':
+        this.drawSpotlightPreview(this.startX, this.startY, x, y);
+        break;
+      case 'magnify':
+        this.drawMagnifyPreview(this.startX, this.startY, x, y);
+        break;
     }
   }
 
@@ -107,6 +134,25 @@ class AnnotationTool {
       return null;
     }
 
+    if (this.currentTool === 'stamp') {
+      this.addStamp(x, y);
+      return null;
+    }
+
+    if (this.currentTool === 'crop') {
+      this.cropRegion = this._normalizeRect(this.startX, this.startY, x, y);
+      this.isCropping = true;
+      this.redraw();
+      this._drawCropOverlay();
+      return 'crop';
+    }
+
+    if (this.currentTool === 'callout') {
+      // Click to place callout — box at click point, short tail below
+      this.calloutAnchor = { x: this.startX, y: this.startY };
+      return 'callout';
+    }
+
     const annotation = {
       tool: this.currentTool,
       color: this.color,
@@ -120,6 +166,21 @@ class AnnotationTool {
 
     if (this.currentTool === 'mosaic' || this.currentTool === 'blur') {
       annotation.imageData = this.getMosaicData(this.startX, this.startY, x, y);
+    }
+
+    if (this.currentTool === 'magnify') {
+      const cx = (this.startX + x) / 2;
+      const cy = (this.startY + y) / 2;
+      const radius = Math.max(30, Math.sqrt((x - this.startX) ** 2 + (y - this.startY) ** 2) / 2);
+      annotation.tool = 'magnify';
+      annotation.cx = cx;
+      annotation.cy = cy;
+      annotation.radius = radius;
+      annotation.zoomLevel = 2;
+    }
+
+    if (this.currentTool === 'spotlight') {
+      annotation.tool = 'spotlight';
     }
 
     this.annotations.push(annotation);
@@ -141,16 +202,19 @@ class AnnotationTool {
     this.redraw();
   }
 
-  addText(text) {
+  addText(text, opts = {}) {
     if (!this.textPosition || !text.trim()) return;
 
     this.annotations.push({
       tool: 'text',
-      color: this.color,
+      color: opts.color || this.color,
       strokeWidth: this.strokeWidth,
       x: this.textPosition.x,
       y: this.textPosition.y,
-      text: text
+      text: text,
+      fontSize: opts.fontSize || 20,
+      bold: opts.bold !== undefined ? opts.bold : true,
+      italic: opts.italic || false
     });
 
     this.redoStack = [];
@@ -296,8 +360,9 @@ class AnnotationTool {
     this.ctx.restore();
   }
 
-  drawText(x, y, text, color, fontSize) {
-    this.ctx.font = `bold ${fontSize || 20}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  drawText(x, y, text, color, fontSize, bold, italic) {
+    const style = `${italic ? 'italic ' : ''}${bold !== false ? 'bold ' : ''}${fontSize || 20}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    this.ctx.font = style;
     this.ctx.fillStyle = color;
     this.ctx.fillText(text, x, y);
   }
@@ -387,6 +452,447 @@ class AnnotationTool {
     }
   }
 
+  // ==================== New Tools ====================
+
+  _normalizeRect(x1, y1, x2, y2) {
+    return {
+      left: Math.min(x1, x2), top: Math.min(y1, y2),
+      width: Math.abs(x2 - x1), height: Math.abs(y2 - y1)
+    };
+  }
+
+  // -- Crop --
+  _drawDimmedOverlay(left, top, width, height, dashed) {
+    const ctx = this.ctx;
+    const cw = this.canvas.width, ch = this.canvas.height;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    // Draw 4 rects around the crop region (not over it)
+    ctx.fillRect(0, 0, cw, top);                          // top
+    ctx.fillRect(0, top, left, height);                    // left
+    ctx.fillRect(left + width, top, cw - left - width, height); // right
+    ctx.fillRect(0, top + height, cw, ch - top - height);  // bottom
+    // Border
+    ctx.strokeStyle = '#8cb485';
+    ctx.lineWidth = 2;
+    if (dashed) ctx.setLineDash([6, 4]);
+    ctx.strokeRect(left, top, width, height);
+    if (dashed) ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  drawCropPreview(x1, y1, x2, y2) {
+    const { left, top, width, height } = this._normalizeRect(x1, y1, x2, y2);
+    this._drawDimmedOverlay(left, top, width, height, true);
+  }
+
+  _drawCropOverlay() {
+    if (!this.cropRegion) return;
+    const { left, top, width, height } = this.cropRegion;
+    this._drawDimmedOverlay(left, top, width, height, false);
+  }
+
+  applyCrop() {
+    if (!this.cropRegion) return;
+    const { left, top, width, height } = this.cropRegion;
+    if (width < 10 || height < 10) return;
+
+    // Save state for undo
+    const prevImage = this.baseImage;
+    const prevW = this.canvas.width;
+    const prevH = this.canvas.height;
+    const prevAnnotations = JSON.parse(JSON.stringify(this.annotations));
+
+    // Create cropped image
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // Redraw base + annotations, then crop
+    this.redraw();
+    tempCtx.drawImage(this.canvas, left, top, width, height, 0, 0, width, height);
+
+    // Update canvas
+    this.canvas.width = width;
+    this.canvas.height = height;
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        this.baseImage = img;
+        this.annotations = [];
+        this.redoStack = [];
+        this.ctx.drawImage(img, 0, 0);
+        // Store crop undo info
+        this.annotations.push({
+          tool: '_cropUndo', prevImage, prevW, prevH, prevAnnotations
+        });
+        this.cropRegion = null;
+        this.isCropping = false;
+        resolve(true);
+      };
+      img.src = tempCanvas.toDataURL('image/png');
+    });
+  }
+
+  cancelCrop() {
+    this.cropRegion = null;
+    this.isCropping = false;
+    this.redraw();
+  }
+
+  // -- Stamp --
+  addStamp(x, y) {
+    this.annotations.push({
+      tool: 'stamp', x, y,
+      emoji: this.currentStamp,
+      size: this.stampSize,
+      color: this.color
+    });
+    this.redoStack = [];
+    this.redraw();
+  }
+
+  drawStamp(x, y, emoji, size) {
+    this.ctx.font = `${size}px -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", sans-serif`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(emoji, x, y);
+    this.ctx.textAlign = 'start';
+    this.ctx.textBaseline = 'alphabetic';
+  }
+
+  // -- Callout --
+  addCallout(text, opts = {}) {
+    if (!this.calloutAnchor || !text.trim()) return;
+    const fontSize = opts.fontSize || 16;
+    const bold = opts.bold !== undefined ? opts.bold : false;
+    const italic = opts.italic || false;
+    const color = opts.color || this.color;
+
+    // Measure text to auto-size the box
+    const ctx = this.ctx;
+    const style = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.font = style;
+    const padding = 12;
+    const maxLineW = 240;
+    // Word-wrap and measure
+    const chars = text.split('');
+    const lines = [];
+    let line = '';
+    for (const ch of chars) {
+      const test = line + ch;
+      if (ctx.measureText(test).width > maxLineW && line) {
+        lines.push(line);
+        line = ch;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+
+    let textW = 0;
+    for (const l of lines) textW = Math.max(textW, ctx.measureText(l).width);
+    const boxW = Math.max(60, textW + padding * 2);
+    const boxH = Math.max(36, lines.length * (fontSize + 4) + padding * 2);
+
+    // Position box centered at anchor, tail extends below
+    const ax = this.calloutAnchor.x;
+    const ay = this.calloutAnchor.y;
+    const boxX = ax - boxW / 2;
+    const boxY = ay - boxH - 20;
+    const tailX = ax;
+    const tailY = ay;
+
+    this.annotations.push({
+      tool: 'callout', color, strokeWidth: this.strokeWidth,
+      boxX, boxY, boxW, boxH, tailX, tailY,
+      text, fontSize, bold, italic
+    });
+    this.calloutAnchor = null;
+    this.redoStack = [];
+    this.redraw();
+  }
+
+  drawCallout(ann) {
+    const { boxX, boxY, boxW, boxH, tailX, tailY, color, strokeWidth } = ann;
+    const ctx = this.ctx;
+    ctx.save();
+
+    // Determine which edge the tail connects to and the two anchor points
+    const cx = boxX + boxW / 2;
+    const cy = boxY + boxH / 2;
+    const r = 8; // border radius (slightly larger for softer feel)
+    const gap = 12; // half-width of tail base (wider = more natural)
+
+    // Clamp tail anchor to the nearest edge
+    let a1x, a1y, a2x, a2y;
+    const dx = tailX - cx, dy = tailY - cy;
+    if (Math.abs(dx) / boxW > Math.abs(dy) / boxH) {
+      // Left or right edge
+      if (dx < 0) { // left
+        const ey = Math.max(boxY + r + gap, Math.min(cy, boxY + boxH - r - gap));
+        a1x = boxX; a1y = ey - gap; a2x = boxX; a2y = ey + gap;
+      } else { // right
+        const ey = Math.max(boxY + r + gap, Math.min(cy, boxY + boxH - r - gap));
+        a1x = boxX + boxW; a1y = ey + gap; a2x = boxX + boxW; a2y = ey - gap;
+      }
+    } else {
+      // Top or bottom edge
+      if (dy < 0) { // top
+        const ex = Math.max(boxX + r + gap, Math.min(cx, boxX + boxW - r - gap));
+        a1x = ex + gap; a1y = boxY; a2x = ex - gap; a2y = boxY;
+      } else { // bottom
+        const ex = Math.max(boxX + r + gap, Math.min(cx, boxX + boxW - r - gap));
+        a1x = ex - gap; a1y = boxY + boxH; a2x = ex + gap; a2y = boxY + boxH;
+      }
+    }
+
+    // Build a unified bubble path: rounded rect with a notch for the tail
+    // The path goes clockwise around the box, inserting the tail at the right edge
+    function bubblePath() {
+      const x0 = boxX, y0 = boxY, x1 = boxX + boxW, y1 = boxY + boxH;
+      ctx.beginPath();
+
+      // Determine which edge the tail is on
+      const _dx = tailX - cx, _dy = tailY - cy;
+      const onBottom = !(Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dy >= 0;
+      const onTop = !(Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dy < 0;
+      const onRight = (Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dx >= 0;
+      const onLeft = (Math.abs(_dx) / boxW > Math.abs(_dy) / boxH) && _dx < 0;
+
+      // Start from top-left corner, go clockwise
+      ctx.moveTo(x0 + r, y0);
+
+      // Helper: draw tail with quadratic curves for smooth rounded shape
+      function tailCurve(ax1, ay1, ax2, ay2) {
+        // Control points: slight curve at base, meet at sharp (but rounded) tip
+        const cpx1 = ax1 + (tailX - ax1) * 0.15;
+        const cpy1 = ay1 + (tailY - ay1) * 0.15;
+        const cpx2 = ax2 + (tailX - ax2) * 0.15;
+        const cpy2 = ay2 + (tailY - ay2) * 0.15;
+
+        ctx.lineTo(ax1, ay1);
+        ctx.quadraticCurveTo(cpx1, cpy1, tailX, tailY);
+        ctx.quadraticCurveTo(cpx2, cpy2, ax2, ay2);
+      }
+
+      // Top edge
+      if (onTop) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x1 - r, y0);
+      ctx.arcTo(x1, y0, x1, y0 + r, r); // top-right corner
+
+      // Right edge
+      if (onRight) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x1, y1 - r);
+      ctx.arcTo(x1, y1, x1 - r, y1, r); // bottom-right corner
+
+      // Bottom edge (path goes right-to-left: x1 → x0)
+      if (onBottom) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x0 + r, y1);
+      ctx.arcTo(x0, y1, x0, y1 - r, r); // bottom-left corner
+
+      // Left edge
+      if (onLeft) tailCurve(a2x, a2y, a1x, a1y);
+      ctx.lineTo(x0, y0 + r);
+      ctx.arcTo(x0, y0, x0 + r, y0, r); // top-left corner
+
+      ctx.closePath();
+    }
+
+    // Subtle drop shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3;
+
+    // Fill bubble background
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.15;
+    bubblePath();
+    ctx.fill();
+
+    // Reset shadow before stroke (avoid double shadow)
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.globalAlpha = 1;
+
+    // Stroke bubble outline
+    ctx.strokeStyle = color;
+    ctx.lineWidth = strokeWidth;
+    ctx.lineJoin = 'round';
+    bubblePath();
+    ctx.stroke();
+
+    // Draw text inside box
+    const style = `${ann.italic ? 'italic ' : ''}${ann.bold ? 'bold ' : ''}${ann.fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.font = style;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'top';
+    const words = ann.text.split('');
+    let line = '';
+    let lineY = boxY + 10;
+    const maxWidth = boxW - 20;
+    for (const char of words) {
+      const testLine = line + char;
+      if (ctx.measureText(testLine).width > maxWidth && line) {
+        ctx.fillText(line, boxX + 10, lineY);
+        line = char;
+        lineY += ann.fontSize + 4;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, boxX + 10, lineY);
+    ctx.textBaseline = 'alphabetic';
+    ctx.restore();
+  }
+
+  // -- Magnify --
+  drawMagnifyPreview(x1, y1, x2, y2) {
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const radius = Math.max(30, Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) / 2);
+    this._renderMagnify(cx, cy, radius, 2);
+  }
+
+  _renderMagnify(cx, cy, radius, zoom) {
+    const ctx = this.ctx;
+    if (!this.baseImage) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Draw zoomed portion of base image
+    const srcX = cx - radius / zoom;
+    const srcY = cy - radius / zoom;
+    const srcW = (radius * 2) / zoom;
+    const srcH = (radius * 2) / zoom;
+    ctx.drawImage(this.baseImage, srcX, srcY, srcW, srcH, cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx.restore();
+
+    // Draw border
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = '#8cb485';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  // -- Spotlight --
+  drawSpotlightPreview(x1, y1, x2, y2) {
+    const { left, top, width, height } = this._normalizeRect(x1, y1, x2, y2);
+    this._renderSpotlight(left, top, width, height);
+  }
+
+  _renderSpotlight(left, top, width, height) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    // Draw 4 rectangles around the spotlight area
+    ctx.fillRect(0, 0, this.canvas.width, top); // top
+    ctx.fillRect(0, top, left, height); // left
+    ctx.fillRect(left + width, top, this.canvas.width - left - width, height); // right
+    ctx.fillRect(0, top + height, this.canvas.width, this.canvas.height - top - height); // bottom
+    // Subtle border
+    ctx.strokeStyle = 'rgba(140, 180, 133, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(left, top, width, height);
+    ctx.restore();
+  }
+
+  // -- Hit Test for Select tool --
+  hitTest(x, y) {
+    for (let i = this.annotations.length - 1; i >= 0; i--) {
+      const a = this.annotations[i];
+      if (a.tool === '_cropUndo') continue;
+      const bounds = this._getAnnotationBounds(a);
+      if (!bounds) continue;
+      if (x >= bounds.left - 5 && x <= bounds.left + bounds.width + 5 &&
+          y >= bounds.top - 5 && y <= bounds.top + bounds.height + 5) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  _getAnnotationBounds(a) {
+    if (a.tool === 'text' || a.tool === 'number' || a.tool === 'stamp') {
+      const size = a.fontSize || a.size || 28;
+      return { left: a.x - size, top: a.y - size, width: size * 2, height: size * 2 };
+    }
+    if (a.tool === 'callout') {
+      return { left: a.boxX, top: a.boxY, width: a.boxW, height: a.boxH };
+    }
+    if (a.tool === 'magnify') {
+      return { left: a.cx - a.radius, top: a.cy - a.radius, width: a.radius * 2, height: a.radius * 2 };
+    }
+    if (a.startX !== undefined) {
+      const left = Math.min(a.startX, a.endX);
+      const top = Math.min(a.startY, a.endY);
+      return { left, top, width: Math.abs(a.endX - a.startX), height: Math.abs(a.endY - a.startY) };
+    }
+    if (a.path && a.path.length > 0) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const p of a.path) {
+        minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+      }
+      return { left: minX, top: minY, width: maxX - minX, height: maxY - minY };
+    }
+    return null;
+  }
+
+  drawSelectionHandles(index) {
+    const a = this.annotations[index];
+    const bounds = this._getAnnotationBounds(a);
+    if (!bounds) return;
+    const { left, top, width, height } = bounds;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = '#8cb485';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(left, top, width, height);
+    ctx.setLineDash([]);
+    // Draw corner handles
+    const hs = 6;
+    ctx.fillStyle = '#8cb485';
+    for (const [hx, hy] of [[left, top], [left + width, top], [left, top + height], [left + width, top + height]]) {
+      ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+    }
+    ctx.restore();
+  }
+
+  moveAnnotation(index, dx, dy) {
+    const a = this.annotations[index];
+    if (a.startX !== undefined) {
+      a.startX += dx; a.startY += dy; a.endX += dx; a.endY += dy;
+    }
+    if (a.x !== undefined) { a.x += dx; a.y += dy; }
+    if (a.cx !== undefined) { a.cx += dx; a.cy += dy; }
+    if (a.boxX !== undefined) { a.boxX += dx; a.boxY += dy; a.tailX += dx; a.tailY += dy; }
+    if (a.path) {
+      for (const p of a.path) { p.x += dx; p.y += dy; }
+    }
+    if (a.imageData) { a.imageData.left += dx; a.imageData.top += dy; }
+    this.redraw();
+  }
+
+  deleteSelected() {
+    if (this.selectedIndex < 0) return;
+    const removed = this.annotations.splice(this.selectedIndex, 1)[0];
+    if (removed.tool === 'number') {
+      this.numberCounter = Math.max(1, this.numberCounter - 1);
+    }
+    this.redoStack.push(removed);
+    this.selectedIndex = -1;
+    this.redraw();
+  }
+
   renderAnnotation(annotation) {
     this.ctx.strokeStyle = annotation.color;
     this.ctx.lineWidth = annotation.strokeWidth;
@@ -472,7 +978,9 @@ class AnnotationTool {
           annotation.y,
           annotation.text,
           annotation.color,
-          annotation.strokeWidth * 6
+          annotation.fontSize || annotation.strokeWidth * 6,
+          annotation.bold !== undefined ? annotation.bold : true,
+          annotation.italic || false
         );
         break;
       case 'number':
@@ -483,6 +991,26 @@ class AnnotationTool {
         break;
       case 'blur':
         this.applyMosaic(annotation.imageData, true);
+        break;
+      case 'stamp':
+        this.drawStamp(annotation.x, annotation.y, annotation.emoji, annotation.size);
+        break;
+      case 'callout':
+        this.drawCallout(annotation);
+        break;
+      case 'magnify':
+        this._renderMagnify(annotation.cx, annotation.cy, annotation.radius, annotation.zoomLevel);
+        break;
+      case 'spotlight':
+        this._renderSpotlight(
+          Math.min(annotation.startX, annotation.endX),
+          Math.min(annotation.startY, annotation.endY),
+          Math.abs(annotation.endX - annotation.startX),
+          Math.abs(annotation.endY - annotation.startY)
+        );
+        break;
+      case '_cropUndo':
+        // Not rendered — only used for undo state
         break;
     }
   }
@@ -495,6 +1023,11 @@ class AnnotationTool {
     for (const annotation of this.annotations) {
       this.renderAnnotation(annotation);
     }
+
+    // Draw selection handles if an annotation is selected
+    if (this.selectedIndex >= 0 && this.selectedIndex < this.annotations.length) {
+      this.drawSelectionHandles(this.selectedIndex);
+    }
   }
 
   undo() {
@@ -503,6 +1036,16 @@ class AnnotationTool {
     if (removed.tool === 'number') {
       this.numberCounter = Math.max(1, this.numberCounter - 1);
     }
+    if (removed.tool === '_cropUndo') {
+      // Restore pre-crop state
+      this.baseImage = removed.prevImage;
+      this.canvas.width = removed.prevW;
+      this.canvas.height = removed.prevH;
+      this.annotations = removed.prevAnnotations;
+      this.redraw();
+      return true;
+    }
+    this.selectedIndex = -1;
     this.redoStack.push(removed);
     this.redraw();
     return true;
@@ -588,16 +1131,123 @@ class ScreenSnapPreview {
   }
 
   setupToolbar() {
-    // Tool buttons
+    // Initialize tool groups — each group shows only one "representative" button
+    this.toolbar.querySelectorAll('.tool-group').forEach(group => {
+      const buttons = group.querySelectorAll('.tool-btn[data-tool]');
+      if (buttons.length === 0) return;
+
+      // Mark first button as the group representative
+      buttons[0].classList.add('group-active');
+
+      // Create dropdown panel
+      const dropdown = document.createElement('div');
+      dropdown.className = 'tool-group-dropdown';
+
+      // Clone buttons into dropdown
+      buttons.forEach(btn => {
+        const clone = btn.cloneNode(true);
+        clone.classList.remove('group-active');
+        dropdown.appendChild(clone);
+      });
+      group.appendChild(dropdown);
+
+      // Click on group-active button → toggle dropdown
+      group.addEventListener('click', (e) => {
+        const activeBtn = group.querySelector('.group-active');
+        const clickedBtn = e.target.closest('.tool-btn[data-tool]');
+
+        if (!clickedBtn) return;
+
+        // If clicking the representative button itself, toggle dropdown
+        if (clickedBtn === activeBtn) {
+          e.stopPropagation();
+          // Close other dropdowns
+          this.toolbar.querySelectorAll('.tool-group-dropdown.visible').forEach(d => {
+            if (d !== dropdown) d.classList.remove('visible');
+          });
+          dropdown.classList.toggle('visible');
+          return;
+        }
+
+        // If clicking a button inside the dropdown
+        if (clickedBtn.closest('.tool-group-dropdown')) {
+          e.stopPropagation();
+          const tool = clickedBtn.dataset.tool;
+
+          // Update group representative
+          const originalBtn = group.querySelector(`.tool-btn[data-tool="${tool}"]:not(.tool-group-dropdown .tool-btn)`);
+          if (originalBtn) {
+            buttons.forEach(b => b.classList.remove('group-active'));
+            originalBtn.classList.add('group-active');
+          }
+
+          // Close dropdown
+          dropdown.classList.remove('visible');
+
+          // Activate the tool
+          this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+          if (originalBtn) originalBtn.classList.add('active');
+          this.annotationTool.setTool(tool);
+          return;
+        }
+      });
+    });
+
+    // Tool buttons (non-grouped ones like select, crop)
     this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+      if (btn.closest('.tool-group-dropdown')) return; // skip dropdown clones
       btn.addEventListener('click', () => {
+        // Close any open dropdowns
+        this.toolbar.querySelectorAll('.tool-group-dropdown.visible').forEach(d => d.classList.remove('visible'));
+        // Don't re-handle group buttons (they're handled above)
+        if (btn.closest('.tool-group') && btn.classList.contains('group-active')) return;
+
         this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.annotationTool.setTool(btn.dataset.tool);
       });
     });
 
+    // Close dropdowns when clicking elsewhere
+    document.addEventListener('click', () => {
+      this.toolbar.querySelectorAll('.tool-group-dropdown.visible').forEach(d => d.classList.remove('visible'));
+    });
+
     this.toolbar.querySelector('[data-tool="select"]').classList.add('active');
+
+    // Stamp picker popup
+    const stampBtn = this.toolbar.querySelector('[data-tool="stamp"]');
+    if (stampBtn) {
+      const stampWrapper = document.createElement('div');
+      stampWrapper.style.position = 'relative';
+      stampWrapper.style.display = 'inline-flex';
+      stampBtn.parentNode.insertBefore(stampWrapper, stampBtn);
+      stampWrapper.appendChild(stampBtn);
+
+      const stampPicker = document.createElement('div');
+      stampPicker.className = 'stamp-picker hidden';
+      stampPicker.id = 'stampPicker';
+      const stamps = ['✓', '✗', '❤', '⭐', '❗', '❓', '👍', '👎', '🔥', '💡', '⚠️', '🎯'];
+      stamps.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'stamp-item' + (emoji === '✓' ? ' active' : '');
+        btn.textContent = emoji;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          stampPicker.querySelectorAll('.stamp-item').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.annotationTool.currentStamp = emoji;
+          stampPicker.classList.add('hidden');
+        });
+        stampPicker.appendChild(btn);
+      });
+      stampWrapper.appendChild(stampPicker);
+
+      stampBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        stampPicker.classList.toggle('hidden');
+      });
+    }
 
     // Color picker popup
     const colorBtn = document.getElementById('colorBtn');
@@ -666,6 +1316,10 @@ class ScreenSnapPreview {
       if (!e.target.closest('.stroke-picker-wrapper')) {
         strokePopup.classList.add('hidden');
       }
+      const sp = document.getElementById('stampPicker');
+      if (sp && !e.target.closest('[data-tool="stamp"]') && !e.target.closest('.stamp-picker')) {
+        sp.classList.add('hidden');
+      }
     });
 
     // Action buttons
@@ -699,32 +1353,126 @@ class ScreenSnapPreview {
   setupCanvas() {
     this.canvas.addEventListener('mousedown', (e) => {
       const { x, y } = this.getCanvasCoords(e);
+      const tool = this.annotationTool;
 
-      if (this.annotationTool.currentTool === 'text') {
-        this.annotationTool.textPosition = { x, y };
+      // Select tool: hit test for move/resize
+      if (tool.currentTool === 'select') {
+        const hit = tool.hitTest(x, y);
+        if (hit >= 0) {
+          tool.selectedIndex = hit;
+          tool.dragMode = 'move';
+          tool.dragStart = { x, y };
+          tool.dragOriginal = { x, y };
+          tool.redraw();
+        } else {
+          tool.selectedIndex = -1;
+          tool.redraw();
+        }
+        return;
+      }
+
+      if (tool.currentTool === 'text') {
+        tool.textPosition = { x, y };
         this.showTextInput();
         return;
       }
 
-      if (this.annotationTool.currentTool === 'number') {
-        this.annotationTool.addNumber(x, y);
+      if (tool.currentTool === 'number') {
+        tool.addNumber(x, y);
         this.saveAnnotations();
         return;
       }
 
-      this.annotationTool.startDraw(x, y);
+      if (tool.currentTool === 'stamp') {
+        tool.addStamp(x, y);
+        this.saveAnnotations();
+        return;
+      }
+
+      tool.startDraw(x, y);
     });
 
     this.canvas.addEventListener('mousemove', (e) => {
       const { x, y } = this.getCanvasCoords(e);
-      this.annotationTool.draw(x, y);
+      const tool = this.annotationTool;
+
+      // Select tool: drag to move
+      if (tool.currentTool === 'select' && tool.dragMode === 'move' && tool.selectedIndex >= 0) {
+        const dx = x - tool.dragStart.x;
+        const dy = y - tool.dragStart.y;
+        tool.dragStart = { x, y };
+        tool.moveAnnotation(tool.selectedIndex, dx, dy);
+        return;
+      }
+
+      tool.draw(x, y);
     });
 
     this.canvas.addEventListener('mouseup', (e) => {
       const { x, y } = this.getCanvasCoords(e);
-      this.annotationTool.endDraw(x, y);
+      const tool = this.annotationTool;
+
+      // Select tool: end drag
+      if (tool.currentTool === 'select') {
+        if (tool.dragMode) {
+          tool.dragMode = null;
+          this.saveAnnotations();
+        }
+        return;
+      }
+
+      const result = tool.endDraw(x, y);
+
+      if (result === 'crop') {
+        this._showCropActions();
+        return;
+      }
+
+      if (result === 'callout') {
+        this.showCalloutInput();
+        return;
+      }
+
       this.saveAnnotations();
     });
+  }
+
+  _showCropActions() {
+    // Show floating crop confirm/cancel buttons
+    const existing = document.getElementById('cropActions');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.id = 'cropActions';
+    div.className = 'crop-actions';
+    div.innerHTML = `
+      <button class="btn btn-secondary crop-cancel-btn">${i18n('preview_cancel')}</button>
+      <button class="btn btn-primary crop-confirm-btn">${i18n('tool_crop')}</button>
+    `;
+    this.canvasContainer.appendChild(div);
+
+    div.querySelector('.crop-confirm-btn').addEventListener('click', async () => {
+      await this.annotationTool.applyCrop();
+      div.remove();
+      this.calcFitZooms();
+      this.setZoom(this.fitWidthZoom);
+      this.saveAnnotations();
+    });
+    div.querySelector('.crop-cancel-btn').addEventListener('click', () => {
+      this.annotationTool.cancelCrop();
+      div.remove();
+    });
+  }
+
+  showCalloutInput() {
+    this.textInputOverlay.classList.remove('hidden');
+    this.textArea.value = '';
+    document.getElementById('textColorPicker').value = this.annotationTool.color;
+    document.getElementById('textFontSize').value = '16';
+    document.getElementById('textBold').classList.remove('active');
+    document.getElementById('textItalic').classList.remove('active');
+    this.textArea.focus();
+    this._isCalloutMode = true;
   }
 
   // ==================== Zoom ====================
@@ -806,20 +1554,37 @@ class ScreenSnapPreview {
       if (e.target.tagName === 'TEXTAREA') return;
 
       // Tool shortcuts
+      // Delete key removes selected annotation
+      if ((e.key === 'Delete' || e.key === 'Backspace') && this.annotationTool.selectedIndex >= 0) {
+        e.preventDefault();
+        this.annotationTool.deleteSelected();
+        this.saveAnnotations();
+        return;
+      }
+
       const toolShortcuts = {
         'v': 'select', 'r': 'rect', 'd': 'dashedRect', 'u': 'roundedRect',
         'o': 'ellipse', 'a': 'arrow', 'w': 'doubleArrow',
         'l': 'line', 'p': 'pen', 'h': 'highlighter', 't': 'text',
-        'n': 'number', 'm': 'mosaic', 'b': 'blur'
+        'n': 'number', 'm': 'mosaic', 'b': 'blur',
+        'c': 'crop', 'k': 'callout', 'e': 'stamp', 'g': 'magnify', 'j': 'spotlight'
       };
 
       if (!e.ctrlKey && !e.metaKey && toolShortcuts[e.key.toLowerCase()]) {
         const tool = toolShortcuts[e.key.toLowerCase()];
-        const btn = this.toolbar.querySelector(`[data-tool="${tool}"]`);
+        // Find the non-dropdown button for this tool
+        const btn = this.toolbar.querySelector(`.tool-btn[data-tool="${tool}"]:not(.tool-group-dropdown .tool-btn)`);
         if (btn) {
           this.toolbar.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           this.annotationTool.setTool(tool);
+
+          // Update group representative if tool is in a group
+          const group = btn.closest('.tool-group');
+          if (group) {
+            group.querySelectorAll(':scope > .tool-btn').forEach(b => b.classList.remove('group-active'));
+            btn.classList.add('group-active');
+          }
         }
         return;
       }
@@ -864,23 +1629,21 @@ class ScreenSnapPreview {
     this.downloadBtn.addEventListener('click', () => this.download());
     this.copyBtn.addEventListener('click', () => this.copyToClipboard());
 
-    this.textConfirmBtn.addEventListener('click', () => {
-      this.annotationTool.addText(this.textArea.value);
-      this.saveAnnotations();
-      this.hideTextInput();
-    });
+    // Text toolbar controls
+    const textBoldBtn = document.getElementById('textBold');
+    const textItalicBtn = document.getElementById('textItalic');
 
-    this.textCancelBtn.addEventListener('click', () => {
-      this.hideTextInput();
-    });
+    textBoldBtn.addEventListener('click', () => textBoldBtn.classList.toggle('active'));
+    textItalicBtn.addEventListener('click', () => textItalicBtn.classList.toggle('active'));
+
+    this.textConfirmBtn.addEventListener('click', () => this._confirmText());
+    this.textCancelBtn.addEventListener('click', () => this.hideTextInput());
 
     // Enter to confirm text
     this.textArea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        this.annotationTool.addText(this.textArea.value);
-        this.saveAnnotations();
-        this.hideTextInput();
+        this._confirmText();
       }
       if (e.key === 'Escape') {
         this.hideTextInput();
@@ -888,13 +1651,37 @@ class ScreenSnapPreview {
     });
   }
 
+  _confirmText() {
+    const fontSize = parseInt(document.getElementById('textFontSize').value);
+    const bold = document.getElementById('textBold').classList.contains('active');
+    const italic = document.getElementById('textItalic').classList.contains('active');
+    const color = document.getElementById('textColorPicker').value;
+
+    if (this._isCalloutMode) {
+      this.annotationTool.addCallout(this.textArea.value, { fontSize, bold, italic, color });
+      this._isCalloutMode = false;
+    } else {
+      this.annotationTool.addText(this.textArea.value, { fontSize, bold, italic, color });
+    }
+    this.saveAnnotations();
+    this.hideTextInput();
+  }
+
   showTextInput() {
     this.textInputOverlay.classList.remove('hidden');
     this.textArea.value = '';
+
+    // Pre-fill controls with current settings
+    document.getElementById('textColorPicker').value = this.annotationTool.color;
+    document.getElementById('textFontSize').value = '20';
+    document.getElementById('textBold').classList.add('active');
+    document.getElementById('textItalic').classList.remove('active');
+
     this.textArea.focus();
   }
 
   hideTextInput() {
+    this._isCalloutMode = false;
     this.textInputOverlay.classList.add('hidden');
     this.textArea.value = '';
   }

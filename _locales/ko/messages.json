@@ -1,162 +1,474 @@
 {
-  "extName": { "message": "ScreenSnap" },
-  "extDescription": { "message": "전문 스크린샷 도구 - 보이는 영역 또는 전체 페이지를 간편하게 캡처" },
-
-  "cmd_captureRegion": { "message": "영역 캡처" },
-  "cmd_captureVisible": { "message": "보이는 영역 캡처" },
-  "cmd_captureFullpage": { "message": "전체 페이지 캡처" },
-  "cmd_captureGif": { "message": "GIF 녹화" },
-
-  "popup_captureRegion": { "message": "영역 캡처" },
-  "popup_captureVisible": { "message": "보이는 영역 캡처" },
-  "popup_captureFullpage": { "message": "전체 페이지" },
-  "popup_capturing": { "message": "캡처 중..." },
-  "popup_capturingProgress": { "message": "캡처 중... $PROGRESS$%", "placeholders": { "PROGRESS": { "content": "$1" } } },
-  "popup_capturingScreen": { "message": "보이는 영역 캡처 중..." },
-  "popup_preparingFullpage": { "message": "전체 페이지 캡처 준비 중..." },
-  "popup_startRegionFailed": { "message": "영역 선택을 시작할 수 없습니다" },
-  "popup_captureFailed": { "message": "캡처 실패" },
-  "popup_fullpageFailed": { "message": "전체 페이지 캡처 실패" },
-  "popup_storageFailed": { "message": "스크린샷이 너무 커서 저장할 수 없습니다" },
-
-  "error_noTab": { "message": "현재 탭에 접근할 수 없습니다" },
-  "error_internalPage": { "message": "브라우저 내부 페이지는 캡처할 수 없습니다" },
-  "error_captureFailed": { "message": "캡처 실패" },
-  "error_fullpageFailed": { "message": "전체 페이지 캡처 실패" },
-  "error_noPageInfo": { "message": "페이지 정보를 가져올 수 없습니다" },
-  "error_regionFailed": { "message": "영역 캡처 실패" },
-  "error_startRegionFailed": { "message": "영역 선택을 시작할 수 없습니다" },
-  "status_capturing": { "message": "페이지 캡처 중..." },
-  "status_merging": { "message": "스크린샷 합치는 중..." },
-
-  "preview_title": { "message": "미리보기 - ScreenSnap" },
-  "preview_loading": { "message": "로딩 중..." },
-  "preview_copy": { "message": "복사" },
-  "preview_save": { "message": "저장" },
-  "preview_cancel": { "message": "취소" },
-  "preview_confirm": { "message": "확인" },
-
-  "tool_select": { "message": "선택 (V)" },
-  "tool_rect": { "message": "사각형 (R)" },
-  "tool_ellipse": { "message": "타원 (O)" },
-  "tool_arrow": { "message": "화살표 (A)" },
-  "tool_line": { "message": "직선 (L)" },
-  "tool_pen": { "message": "펜 (P)" },
-  "tool_highlighter": { "message": "형광펜 (H)" },
-  "tool_text": { "message": "텍스트 (T)" },
-  "tool_number": { "message": "번호 (N)" },
-  "tool_dashedRect": { "message": "점선 사각형 (D)" },
-  "tool_roundedRect": { "message": "둥근 사각형 (U)" },
-  "tool_doubleArrow": { "message": "양방향 화살표 (W)" },
-  "tool_mosaic": { "message": "모자이크 (M)" },
-  "tool_blur": { "message": "흐림 (B)" },
-
-  "toolgroup_shapes": { "message": "도형" },
-  "toolgroup_draw": { "message": "그리기" },
-  "toolgroup_mark": { "message": "표시" },
-  "toolgroup_mask": { "message": "마스크" },
-
-  "color_select": { "message": "색상 선택" },
-  "color_red": { "message": "빨강" },
-  "color_orange": { "message": "주황" },
-  "color_yellow": { "message": "노랑" },
-  "color_yellowGreen": { "message": "연두" },
-  "color_green": { "message": "초록" },
-  "color_cyan": { "message": "청록" },
-  "color_blue": { "message": "파랑" },
-  "color_purple": { "message": "보라" },
-  "color_pink": { "message": "분홍" },
-  "color_rose": { "message": "로즈" },
-  "color_white": { "message": "흰색" },
-  "color_black": { "message": "검정" },
-  "color_custom": { "message": "사용자 정의 색상" },
-  "color_customLabel": { "message": "사용자 정의" },
-
-  "stroke_select": { "message": "선 굵기" },
-  "stroke_thin": { "message": "가늘게" },
-  "stroke_medium": { "message": "보통" },
-  "stroke_thick": { "message": "굵게" },
-  "stroke_extraThick": { "message": "매우 굵게" },
-
-  "action_undo": { "message": "실행 취소 (Ctrl+Z)" },
-  "action_redo": { "message": "다시 실행 (Ctrl+Y)" },
-  "action_clear": { "message": "주석 지우기" },
-  "action_copyClipboard": { "message": "클립보드에 복사 (Ctrl+C)" },
-  "action_saveLocal": { "message": "저장 (Ctrl+S)" },
-
-  "zoom_out": { "message": "축소 (Ctrl+-)" },
-  "zoom_in": { "message": "확대 (Ctrl+=)" },
-  "zoom_clickFitWidth": { "message": "클릭하여 너비에 맞추기" },
-  "zoom_fitWidth": { "message": "너비에 맞추기 (Ctrl+0)" },
-  "zoom_fitView": { "message": "창에 맞추기" },
-
-  "text_placeholder": { "message": "텍스트 입력..." },
-
-  "confirm_clearAll": { "message": "모든 주석을 지우시겠습니까?" },
-  "error_noScreenshot": { "message": "스크린샷을 찾을 수 없습니다" },
-  "error_screenshotExpired": { "message": "스크린샷 데이터가 만료되었습니다" },
-  "error_imageLoadFailed": { "message": "이미지 로드 실패" },
-  "error_loadFailed": { "message": "스크린샷 로드 실패" },
-  "toast_saved": { "message": "저장되었습니다" },
-  "toast_saveFailed": { "message": "저장 실패: $ERROR$", "placeholders": { "ERROR": { "content": "$1" } } },
-  "toast_copied": { "message": "클립보드에 복사되었습니다" },
-  "toast_copyFailed": { "message": "복사 실패" },
-
-  "selector_hint": { "message": "드래그하여 영역 선택. ESC로 취소" },
-  "selector_cancel": { "message": "취소" },
-  "selector_confirm": { "message": "캡처" },
-
-  "options_title": { "message": "설정" },
-  "options_saveFormat": { "message": "저장 형식" },
-  "options_imageQuality": { "message": "이미지 품질" },
-  "options_qualityLow": { "message": "낮음" },
-  "options_qualityHigh": { "message": "높음" },
-  "options_defaultColor": { "message": "기본 주석 색상" },
-  "options_defaultStroke": { "message": "기본 선 굵기" },
-  "options_autoPreview": { "message": "캡처 후 미리보기 열기" },
-  "options_language": { "message": "언어" },
-  "options_languageAuto": { "message": "자동 (브라우저 설정)" },
-  "options_languageReload": { "message": "언어 변경 후 페이지를 새로고침하세요" },
-  "options_saved": { "message": "설정이 저장되었습니다" },
-
-  "history_title": { "message": "스크린샷 기록 - ScreenSnap" },
-  "history_heading": { "message": "스크린샷 기록" },
-  "history_searchPlaceholder": { "message": "검색..." },
-  "history_filterAll": { "message": "전체" },
-  "history_filterVisible": { "message": "보이는 영역" },
-  "history_filterFullpage": { "message": "전체 페이지" },
-  "history_filterRegion": { "message": "영역" },
-  "history_statsCount": { "message": "$SHOWN$ / $TOTAL$ 개 표시", "placeholders": { "SHOWN": { "content": "$1" }, "TOTAL": { "content": "$2" } } },
-  "history_clearAll": { "message": "모두 지우기" },
-  "history_clearAllTitle": { "message": "모든 스크린샷 지우기" },
-  "history_clearAllDesc": { "message": "모든 스크린샷이 영구 삭제됩니다. 계속하시겠습니까?" },
-  "history_clearAllConfirm": { "message": "모두 지우기" },
-  "history_clearedAll": { "message": "모든 스크린샷이 삭제되었습니다" },
-  "history_delete": { "message": "삭제" },
-  "history_deleteConfirmTitle": { "message": "스크린샷 삭제" },
-  "history_deleteConfirmDesc": { "message": "이 스크린샷이 영구 삭제됩니다. 계속하시겠습니까?" },
-  "history_deleted": { "message": "스크린샷이 삭제되었습니다" },
-  "history_deleteFailed": { "message": "삭제 실패" },
-  "history_untitled": { "message": "제목 없는 스크린샷" },
-  "history_emptyTitle": { "message": "스크린샷이 없습니다" },
-  "history_emptyDesc": { "message": "캡처한 스크린샷이 여기에 표시됩니다" },
-  "history_today": { "message": "오늘" },
-  "history_yesterday": { "message": "어제" },
-  "history_daysAgo": { "message": "$DAYS$일 전", "placeholders": { "DAYS": { "content": "$1" } } },
-  "history_typeVisible": { "message": "보이는 영역" },
-  "history_typeFullpage": { "message": "전체 페이지" },
-  "history_typeRegion": { "message": "영역" },
-  "history_typeGif": { "message": "GIF" },
-  "history_filterGif": { "message": "GIF" },
-
-  "popup_captureGif": { "message": "GIF 녹화" },
-
-  "gif_selectHint": { "message": "드래그하여 녹화 영역 선택" },
-  "gif_record": { "message": "녹화" },
-  "gif_stop": { "message": "정지" },
-  "gif_startFailed": { "message": "GIF 녹화 시작 실패" },
-  "gif_encoding": { "message": "GIF 인코딩 중..." },
-  "gif_encodingProgress": { "message": "GIF 인코딩 중... $PERCENT$%", "placeholders": { "PERCENT": { "content": "$1" } } },
-  "gif_encodingFailed": { "message": "GIF 인코딩 실패" },
-  "gif_noFrames": { "message": "GIF 프레임을 찾을 수 없습니다" }
+  "extName": {
+    "message": "ScreenSnap"
+  },
+  "extDescription": {
+    "message": "전문 스크린샷 도구 - 보이는 영역 또는 전체 페이지를 간편하게 캡처"
+  },
+  "cmd_captureRegion": {
+    "message": "영역 캡처"
+  },
+  "cmd_captureVisible": {
+    "message": "보이는 영역 캡처"
+  },
+  "cmd_captureFullpage": {
+    "message": "전체 페이지 캡처"
+  },
+  "cmd_captureGif": {
+    "message": "GIF 녹화"
+  },
+  "popup_captureRegion": {
+    "message": "영역 캡처"
+  },
+  "popup_captureVisible": {
+    "message": "보이는 영역 캡처"
+  },
+  "popup_captureFullpage": {
+    "message": "전체 페이지"
+  },
+  "popup_capturing": {
+    "message": "캡처 중..."
+  },
+  "popup_capturingProgress": {
+    "message": "캡처 중... $PROGRESS$%",
+    "placeholders": {
+      "PROGRESS": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_capturingScreen": {
+    "message": "보이는 영역 캡처 중..."
+  },
+  "popup_preparingFullpage": {
+    "message": "전체 페이지 캡처 준비 중..."
+  },
+  "popup_startRegionFailed": {
+    "message": "영역 선택을 시작할 수 없습니다"
+  },
+  "popup_captureFailed": {
+    "message": "캡처 실패"
+  },
+  "popup_fullpageFailed": {
+    "message": "전체 페이지 캡처 실패"
+  },
+  "popup_storageFailed": {
+    "message": "스크린샷이 너무 커서 저장할 수 없습니다"
+  },
+  "error_noTab": {
+    "message": "현재 탭에 접근할 수 없습니다"
+  },
+  "error_internalPage": {
+    "message": "브라우저 내부 페이지는 캡처할 수 없습니다"
+  },
+  "error_captureFailed": {
+    "message": "캡처 실패"
+  },
+  "error_fullpageFailed": {
+    "message": "전체 페이지 캡처 실패"
+  },
+  "error_noPageInfo": {
+    "message": "페이지 정보를 가져올 수 없습니다"
+  },
+  "error_regionFailed": {
+    "message": "영역 캡처 실패"
+  },
+  "error_startRegionFailed": {
+    "message": "영역 선택을 시작할 수 없습니다"
+  },
+  "status_capturing": {
+    "message": "페이지 캡처 중..."
+  },
+  "status_merging": {
+    "message": "스크린샷 합치는 중..."
+  },
+  "preview_title": {
+    "message": "미리보기 - ScreenSnap"
+  },
+  "preview_loading": {
+    "message": "로딩 중..."
+  },
+  "preview_copy": {
+    "message": "복사"
+  },
+  "preview_save": {
+    "message": "저장"
+  },
+  "preview_cancel": {
+    "message": "취소"
+  },
+  "preview_confirm": {
+    "message": "확인"
+  },
+  "tool_select": {
+    "message": "선택 (V)"
+  },
+  "tool_rect": {
+    "message": "사각형 (R)"
+  },
+  "tool_ellipse": {
+    "message": "타원 (O)"
+  },
+  "tool_arrow": {
+    "message": "화살표 (A)"
+  },
+  "tool_line": {
+    "message": "직선 (L)"
+  },
+  "tool_pen": {
+    "message": "펜 (P)"
+  },
+  "tool_highlighter": {
+    "message": "형광펜 (H)"
+  },
+  "tool_text": {
+    "message": "텍스트 (T)"
+  },
+  "tool_number": {
+    "message": "번호 (N)"
+  },
+  "tool_dashedRect": {
+    "message": "점선 사각형 (D)"
+  },
+  "tool_roundedRect": {
+    "message": "둥근 사각형 (U)"
+  },
+  "tool_doubleArrow": {
+    "message": "양방향 화살표 (W)"
+  },
+  "tool_mosaic": {
+    "message": "모자이크 (M)"
+  },
+  "tool_blur": {
+    "message": "흐림 (B)"
+  },
+  "toolgroup_shapes": {
+    "message": "도형"
+  },
+  "toolgroup_draw": {
+    "message": "그리기"
+  },
+  "toolgroup_mark": {
+    "message": "표시"
+  },
+  "toolgroup_mask": {
+    "message": "마스크"
+  },
+  "color_select": {
+    "message": "색상 선택"
+  },
+  "color_red": {
+    "message": "빨강"
+  },
+  "color_orange": {
+    "message": "주황"
+  },
+  "color_yellow": {
+    "message": "노랑"
+  },
+  "color_yellowGreen": {
+    "message": "연두"
+  },
+  "color_green": {
+    "message": "초록"
+  },
+  "color_cyan": {
+    "message": "청록"
+  },
+  "color_blue": {
+    "message": "파랑"
+  },
+  "color_purple": {
+    "message": "보라"
+  },
+  "color_pink": {
+    "message": "분홍"
+  },
+  "color_rose": {
+    "message": "로즈"
+  },
+  "color_white": {
+    "message": "흰색"
+  },
+  "color_black": {
+    "message": "검정"
+  },
+  "color_custom": {
+    "message": "사용자 정의 색상"
+  },
+  "color_customLabel": {
+    "message": "사용자 정의"
+  },
+  "stroke_select": {
+    "message": "선 굵기"
+  },
+  "stroke_thin": {
+    "message": "가늘게"
+  },
+  "stroke_medium": {
+    "message": "보통"
+  },
+  "stroke_thick": {
+    "message": "굵게"
+  },
+  "stroke_extraThick": {
+    "message": "매우 굵게"
+  },
+  "action_undo": {
+    "message": "실행 취소 (Ctrl+Z)"
+  },
+  "action_redo": {
+    "message": "다시 실행 (Ctrl+Y)"
+  },
+  "action_clear": {
+    "message": "주석 지우기"
+  },
+  "action_copyClipboard": {
+    "message": "클립보드에 복사 (Ctrl+C)"
+  },
+  "action_saveLocal": {
+    "message": "저장 (Ctrl+S)"
+  },
+  "zoom_out": {
+    "message": "축소 (Ctrl+-)"
+  },
+  "zoom_in": {
+    "message": "확대 (Ctrl+=)"
+  },
+  "zoom_clickFitWidth": {
+    "message": "클릭하여 너비에 맞추기"
+  },
+  "zoom_fitWidth": {
+    "message": "너비에 맞추기 (Ctrl+0)"
+  },
+  "zoom_fitView": {
+    "message": "창에 맞추기"
+  },
+  "text_placeholder": {
+    "message": "텍스트 입력..."
+  },
+  "confirm_clearAll": {
+    "message": "모든 주석을 지우시겠습니까?"
+  },
+  "error_noScreenshot": {
+    "message": "스크린샷을 찾을 수 없습니다"
+  },
+  "error_screenshotExpired": {
+    "message": "스크린샷 데이터가 만료되었습니다"
+  },
+  "error_imageLoadFailed": {
+    "message": "이미지 로드 실패"
+  },
+  "error_loadFailed": {
+    "message": "스크린샷 로드 실패"
+  },
+  "toast_saved": {
+    "message": "저장되었습니다"
+  },
+  "toast_saveFailed": {
+    "message": "저장 실패: $ERROR$",
+    "placeholders": {
+      "ERROR": {
+        "content": "$1"
+      }
+    }
+  },
+  "toast_copied": {
+    "message": "클립보드에 복사되었습니다"
+  },
+  "toast_copyFailed": {
+    "message": "복사 실패"
+  },
+  "selector_hint": {
+    "message": "드래그하여 영역 선택. ESC로 취소"
+  },
+  "selector_cancel": {
+    "message": "취소"
+  },
+  "selector_confirm": {
+    "message": "캡처"
+  },
+  "options_title": {
+    "message": "설정"
+  },
+  "options_saveFormat": {
+    "message": "저장 형식"
+  },
+  "options_imageQuality": {
+    "message": "이미지 품질"
+  },
+  "options_qualityLow": {
+    "message": "낮음"
+  },
+  "options_qualityHigh": {
+    "message": "높음"
+  },
+  "options_defaultColor": {
+    "message": "기본 주석 색상"
+  },
+  "options_defaultStroke": {
+    "message": "기본 선 굵기"
+  },
+  "options_autoPreview": {
+    "message": "캡처 후 미리보기 열기"
+  },
+  "options_language": {
+    "message": "언어"
+  },
+  "options_languageAuto": {
+    "message": "자동 (브라우저 설정)"
+  },
+  "options_languageReload": {
+    "message": "언어 변경 후 페이지를 새로고침하세요"
+  },
+  "options_saved": {
+    "message": "설정이 저장되었습니다"
+  },
+  "history_title": {
+    "message": "스크린샷 기록 - ScreenSnap"
+  },
+  "history_heading": {
+    "message": "스크린샷 기록"
+  },
+  "history_searchPlaceholder": {
+    "message": "검색..."
+  },
+  "history_filterAll": {
+    "message": "전체"
+  },
+  "history_filterVisible": {
+    "message": "보이는 영역"
+  },
+  "history_filterFullpage": {
+    "message": "전체 페이지"
+  },
+  "history_filterRegion": {
+    "message": "영역"
+  },
+  "history_statsCount": {
+    "message": "$SHOWN$ / $TOTAL$ 개 표시",
+    "placeholders": {
+      "SHOWN": {
+        "content": "$1"
+      },
+      "TOTAL": {
+        "content": "$2"
+      }
+    }
+  },
+  "history_clearAll": {
+    "message": "모두 지우기"
+  },
+  "history_clearAllTitle": {
+    "message": "모든 스크린샷 지우기"
+  },
+  "history_clearAllDesc": {
+    "message": "모든 스크린샷이 영구 삭제됩니다. 계속하시겠습니까?"
+  },
+  "history_clearAllConfirm": {
+    "message": "모두 지우기"
+  },
+  "history_clearedAll": {
+    "message": "모든 스크린샷이 삭제되었습니다"
+  },
+  "history_delete": {
+    "message": "삭제"
+  },
+  "history_deleteConfirmTitle": {
+    "message": "스크린샷 삭제"
+  },
+  "history_deleteConfirmDesc": {
+    "message": "이 스크린샷이 영구 삭제됩니다. 계속하시겠습니까?"
+  },
+  "history_deleted": {
+    "message": "스크린샷이 삭제되었습니다"
+  },
+  "history_deleteFailed": {
+    "message": "삭제 실패"
+  },
+  "history_untitled": {
+    "message": "제목 없는 스크린샷"
+  },
+  "history_emptyTitle": {
+    "message": "스크린샷이 없습니다"
+  },
+  "history_emptyDesc": {
+    "message": "캡처한 스크린샷이 여기에 표시됩니다"
+  },
+  "history_today": {
+    "message": "오늘"
+  },
+  "history_yesterday": {
+    "message": "어제"
+  },
+  "history_daysAgo": {
+    "message": "$DAYS$일 전",
+    "placeholders": {
+      "DAYS": {
+        "content": "$1"
+      }
+    }
+  },
+  "history_typeVisible": {
+    "message": "보이는 영역"
+  },
+  "history_typeFullpage": {
+    "message": "전체 페이지"
+  },
+  "history_typeRegion": {
+    "message": "영역"
+  },
+  "history_typeGif": {
+    "message": "GIF"
+  },
+  "history_filterGif": {
+    "message": "GIF"
+  },
+  "popup_captureGif": {
+    "message": "GIF 녹화"
+  },
+  "gif_selectHint": {
+    "message": "드래그하여 녹화 영역 선택"
+  },
+  "gif_record": {
+    "message": "녹화"
+  },
+  "gif_stop": {
+    "message": "정지"
+  },
+  "gif_startFailed": {
+    "message": "GIF 녹화 시작 실패"
+  },
+  "gif_encoding": {
+    "message": "GIF 인코딩 중..."
+  },
+  "gif_encodingProgress": {
+    "message": "GIF 인코딩 중... $PERCENT$%",
+    "placeholders": {
+      "PERCENT": {
+        "content": "$1"
+      }
+    }
+  },
+  "gif_encodingFailed": {
+    "message": "GIF 인코딩 실패"
+  },
+  "gif_noFrames": {
+    "message": "GIF 프레임을 찾을 수 없습니다"
+  },
+  "tool_crop": {
+    "message": "자르기 (C)"
+  },
+  "tool_callout": {
+    "message": "말풍선 (K)"
+  },
+  "tool_stamp": {
+    "message": "스탬프 (E)"
+  },
+  "tool_magnify": {
+    "message": "돋보기 (G)"
+  },
+  "tool_spotlight": {
+    "message": "스포트라이트 (J)"
+  }
 }

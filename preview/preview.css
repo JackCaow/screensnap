@@ -56,41 +56,39 @@ body {
   height: 100vh;
 }
 
-/* ── Header — two-row layout ── */
+/* ── Header — single-row layout ── */
 .header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   background: rgba(33, 43, 31, 0.8);
   backdrop-filter: blur(12px);
   flex-shrink: 0;
-  z-index: 10;
+  z-index: 200;
+  position: relative;
+  padding: 6px 16px;
+  gap: 12px;
 }
 
 .header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 20px;
+  display: contents;
 }
 
 .header-left,
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .header-center {
   display: flex;
   justify-content: center;
-  padding: 0 12px 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
 }
 
-.header-center::-webkit-scrollbar {
-  display: none;
-}
 
 .logo {
   display: flex;
@@ -119,12 +117,12 @@ body {
 .btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 5px;
+  padding: 6px 14px;
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition);
@@ -331,39 +329,89 @@ body {
   display: flex;
   align-items: center;
   gap: 2px;
-  background: rgba(42, 53, 40, 0.85);
-  backdrop-filter: blur(12px);
-  padding: 5px 12px;
+  background: rgba(42, 53, 40, 0.6);
+  padding: 3px 8px;
   border-radius: var(--radius-full);
-  box-shadow: var(--shadow-soft);
 }
 
 .toolbar-divider {
   width: 1px;
-  height: 24px;
+  height: 20px;
   background: var(--outline-variant);
-  margin: 0 6px;
-  opacity: 0.3;
+  margin: 0 4px;
+  opacity: 0.25;
 }
 
 .tool-group {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 1px;
+}
+
+.tool-group > .tool-btn {
+  /* Only the active/representative button is visible by default */
+}
+
+.tool-group > .tool-btn:not(.group-active) {
+  display: none;
+}
+
+.tool-group.expanded > .tool-btn {
+  display: flex;
+}
+
+/* Dropdown panel for collapsed groups */
+.tool-group-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-container);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 2px;
+  box-shadow: var(--shadow-popup);
+  z-index: 300;
+  flex-wrap: wrap;
+  min-width: max-content;
+}
+
+.tool-group-dropdown.visible {
+  display: flex;
+}
+
+.tool-group-dropdown .tool-btn {
+  display: flex;
+}
+
+/* Small triangle indicator on group button */
+.tool-group > .group-active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 0;
+  height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 3px solid currentColor;
+  opacity: 0.4;
 }
 
 .tool-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--on-surface-variant);
   cursor: pointer;
   transition: all var(--transition);
+  position: relative;
 }
 
 .tool-btn:hover {
@@ -609,7 +657,144 @@ body {
   opacity: 0.5;
 }
 
+.text-input-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--surface-container);
+  border-radius: var(--radius-lg);
+  width: 420px;
+}
+
+.text-select {
+  padding: 6px 10px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  font-size: 13px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+
+.text-select:focus {
+  border-color: var(--primary);
+}
+
+.text-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--on-surface-variant);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.text-toggle-btn:hover {
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+}
+
+.text-toggle-btn.active {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.text-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--outline-variant);
+  margin: 0 4px;
+  opacity: 0.4;
+}
+
+.text-color-input {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  padding: 2px;
+  background: var(--surface-container-low);
+}
+
+.text-color-input::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.text-color-input::-webkit-color-swatch {
+  border-radius: 4px;
+  border: none;
+}
+
 .text-input-actions {
   display: flex;
   gap: 12px;
+}
+
+/* ── Crop Actions ── */
+.crop-actions {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(33, 43, 31, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-popup);
+  z-index: 100;
+}
+
+/* ── Stamp Picker ── */
+.stamp-picker {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(33, 43, 31, 0.92);
+  backdrop-filter: blur(16px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popup);
+  z-index: 100;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.stamp-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.stamp-item:hover {
+  background: var(--surface-container-high);
+  transform: scale(1.15);
+}
+
+.stamp-item.active {
+  background: var(--primary);
+  border-radius: var(--radius-md);
 }
