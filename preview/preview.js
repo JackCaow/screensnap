@@ -35,6 +35,10 @@ class AnnotationTool {
   setTool(tool) {
     this.currentTool = tool;
     this.selectedIndex = -1;
+    this.dragMode = null;
+    this.dragStart = null;
+    this.dragOriginal = null;
+    this.isDrawing = false;
     this.cropRegion = null;
     this.isCropping = false;
     this.canvas.style.cursor = tool === 'select' ? 'default' : 'crosshair';
@@ -1370,6 +1374,15 @@ class ScreenSnapPreview {
   }
 
   setupCanvas() {
+    const finishCropMoveDrag = () => {
+      const tool = this.annotationTool;
+      if (tool.currentTool !== 'crop' || tool.dragMode !== 'crop-move') return false;
+      tool.dragMode = null;
+      tool.dragStart = null;
+      this.canvas.style.cursor = tool.isCropping ? 'move' : 'crosshair';
+      return true;
+    };
+
     this.canvas.addEventListener('mousedown', (e) => {
       const { x, y } = this.getCanvasCoords(e);
       const tool = this.annotationTool;
@@ -1462,8 +1475,7 @@ class ScreenSnapPreview {
       }
 
       if (tool.currentTool === 'crop' && tool.dragMode === 'crop-move') {
-        tool.dragMode = null;
-        this.canvas.style.cursor = tool.isCropping ? 'move' : 'crosshair';
+        finishCropMoveDrag();
         return;
       }
 
@@ -1487,6 +1499,14 @@ class ScreenSnapPreview {
       if (tool.currentTool === 'crop' && !tool.dragMode && !tool.isDrawing) {
         this.canvas.style.cursor = 'crosshair';
       }
+    });
+
+    window.addEventListener('mouseup', () => {
+      finishCropMoveDrag();
+    });
+
+    window.addEventListener('blur', () => {
+      finishCropMoveDrag();
     });
   }
 
