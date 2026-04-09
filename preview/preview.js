@@ -492,6 +492,25 @@ class AnnotationTool {
     this._drawDimmedOverlay(left, top, width, height, false);
   }
 
+  isInsideCropRegion(x, y) {
+    if (!this.cropRegion) return false;
+    const { left, top, width, height } = this.cropRegion;
+    return x >= left && x <= left + width && y >= top && y <= top + height;
+  }
+
+  moveCropRegion(dx, dy) {
+    if (!this.cropRegion) return;
+    const nextLeft = Math.max(0, Math.min(this.canvas.width - this.cropRegion.width, this.cropRegion.left + dx));
+    const nextTop = Math.max(0, Math.min(this.canvas.height - this.cropRegion.height, this.cropRegion.top + dy));
+    this.cropRegion = {
+      ...this.cropRegion,
+      left: nextLeft,
+      top: nextTop
+    };
+    this.redraw();
+    this._drawCropOverlay();
+  }
+
   applyCrop() {
     if (!this.cropRegion) return;
     const { left, top, width, height } = this.cropRegion;
@@ -1389,6 +1408,13 @@ class ScreenSnapPreview {
         return;
       }
 
+      if (tool.currentTool === 'crop' && tool.isCropping && tool.isInsideCropRegion(x, y)) {
+        tool.dragMode = 'crop-move';
+        tool.dragStart = { x, y };
+        this.canvas.style.cursor = 'move';
+        return;
+      }
+
       tool.startDraw(x, y);
     });
 
@@ -1403,6 +1429,20 @@ class ScreenSnapPreview {
         tool.dragStart = { x, y };
         tool.moveAnnotation(tool.selectedIndex, dx, dy);
         return;
+      }
+
+      if (tool.currentTool === 'crop') {
+        if (tool.dragMode === 'crop-move' && tool.isCropping) {
+          const dx = x - tool.dragStart.x;
+          const dy = y - tool.dragStart.y;
+          tool.dragStart = { x, y };
+          tool.moveCropRegion(dx, dy);
+          return;
+        }
+
+        if (!tool.isDrawing) {
+          this.canvas.style.cursor = tool.isCropping && tool.isInsideCropRegion(x, y) ? 'move' : 'crosshair';
+        }
       }
 
       tool.draw(x, y);
@@ -1421,6 +1461,12 @@ class ScreenSnapPreview {
         return;
       }
 
+      if (tool.currentTool === 'crop' && tool.dragMode === 'crop-move') {
+        tool.dragMode = null;
+        this.canvas.style.cursor = tool.isCropping ? 'move' : 'crosshair';
+        return;
+      }
+
       const result = tool.endDraw(x, y);
 
       if (result === 'crop') {
@@ -1434,6 +1480,13 @@ class ScreenSnapPreview {
       }
 
       this.saveAnnotations();
+    });
+
+    this.canvas.addEventListener('mouseleave', () => {
+      const tool = this.annotationTool;
+      if (tool.currentTool === 'crop' && !tool.dragMode && !tool.isDrawing) {
+        this.canvas.style.cursor = 'crosshair';
+      }
     });
   }
 
