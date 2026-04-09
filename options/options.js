@@ -6,6 +6,11 @@ class OptionsPage {
   constructor() {
     this.form = document.getElementById('settingsForm');
     this.languageSelect = document.getElementById('languageSelect');
+    this.languageSelectField = document.getElementById('languageSelectField');
+    this.languageSelectTrigger = document.getElementById('languageSelectTrigger');
+    this.languageSelectValue = document.getElementById('languageSelectValue');
+    this.languageSelectMenu = document.getElementById('languageSelectMenu');
+    this.languageOptions = Array.from(document.querySelectorAll('.select-option'));
     this.qualitySlider = document.getElementById('imageQuality');
     this.qualityValue = document.getElementById('qualityValue');
     this.qualityGroup = document.getElementById('qualityGroup');
@@ -21,6 +26,7 @@ class OptionsPage {
     // Load language setting
     const langResult = await chrome.storage.sync.get({ language: 'auto' });
     this.languageSelect.value = langResult.language;
+    this.syncLanguageSelectUI();
 
     const settings = await loadSettings();
     this.applyToForm(settings);
@@ -53,10 +59,64 @@ class OptionsPage {
   bindEvents() {
     // Language change
     this.languageSelect.addEventListener('change', async () => {
+      this.syncLanguageSelectUI();
       await chrome.storage.sync.set({ language: this.languageSelect.value });
       this.showToast();
       // Reload page to apply new language
       setTimeout(() => location.reload(), 800);
+    });
+
+    this.languageSelectTrigger.addEventListener('click', () => {
+      this.toggleLanguageSelect();
+    });
+
+    this.languageSelectTrigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.toggleLanguageSelect();
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!this.isLanguageSelectOpen()) {
+          this.openLanguageSelect();
+        }
+        this.focusLanguageOption(this.getLanguageOptionIndex(this.languageSelect.value));
+      }
+
+      if (e.key === 'Escape') {
+        this.closeLanguageSelect();
+      }
+    });
+
+    this.languageOptions.forEach((option, index) => {
+      option.addEventListener('click', () => {
+        this.selectLanguage(option.dataset.value);
+      });
+
+      option.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          this.focusLanguageOption((index + 1) % this.languageOptions.length);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          this.focusLanguageOption((index - 1 + this.languageOptions.length) % this.languageOptions.length);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          this.closeLanguageSelect();
+          this.languageSelectTrigger.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.selectLanguage(option.dataset.value);
+        }
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!this.languageSelectField.contains(e.target)) {
+        this.closeLanguageSelect();
+      }
     });
 
     // Format change
@@ -91,6 +151,67 @@ class OptionsPage {
   toggleQualityVisibility(format) {
     // PNG is lossless, quality slider not applicable
     this.qualityGroup.style.display = format === 'png' ? 'none' : 'block';
+  }
+
+  syncLanguageSelectUI() {
+    const selectedOption = this.languageOptions.find(option => option.dataset.value === this.languageSelect.value);
+    const selectedLabel = selectedOption ? selectedOption.textContent.trim() : this.languageSelect.options[this.languageSelect.selectedIndex]?.textContent?.trim();
+    this.languageSelectValue.textContent = selectedLabel || '';
+    this.languageOptions.forEach(option => {
+      const isActive = option.dataset.value === this.languageSelect.value;
+      option.classList.toggle('active', isActive);
+      option.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      option.tabIndex = isActive ? 0 : -1;
+    });
+  }
+
+  isLanguageSelectOpen() {
+    return this.languageSelectField.classList.contains('open');
+  }
+
+  openLanguageSelect() {
+    this.languageSelectField.classList.add('open');
+    this.languageSelectMenu.classList.remove('hidden');
+    this.languageSelectTrigger.setAttribute('aria-expanded', 'true');
+  }
+
+  closeLanguageSelect() {
+    this.languageSelectField.classList.remove('open');
+    this.languageSelectMenu.classList.add('hidden');
+    this.languageSelectTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  toggleLanguageSelect() {
+    if (this.isLanguageSelectOpen()) {
+      this.closeLanguageSelect();
+      return;
+    }
+
+    this.openLanguageSelect();
+  }
+
+  getLanguageOptionIndex(value) {
+    const index = this.languageOptions.findIndex(option => option.dataset.value === value);
+    return index >= 0 ? index : 0;
+  }
+
+  focusLanguageOption(index) {
+    const option = this.languageOptions[index];
+    if (!option) return;
+    option.focus();
+  }
+
+  selectLanguage(value) {
+    if (this.languageSelect.value === value) {
+      this.closeLanguageSelect();
+      this.languageSelectTrigger.focus();
+      return;
+    }
+
+    this.languageSelect.value = value;
+    this.languageSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    this.closeLanguageSelect();
+    this.languageSelectTrigger.focus();
   }
 
   async save() {

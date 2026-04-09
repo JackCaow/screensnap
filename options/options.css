@@ -153,27 +153,110 @@ body {
 }
 
 /* ── Select Input ── */
-.select-input {
+.select-field {
+  position: relative;
+}
+
+.select-native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.select-trigger {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 10px 14px;
   background: var(--surface-container-highest);
   border: 1.5px solid rgba(163, 178, 158, 0.15);
   border-radius: var(--radius-lg);
   font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
   color: var(--on-surface);
   cursor: pointer;
   outline: none;
   transition: all var(--transition);
 }
 
-.select-input:hover {
+.select-trigger:hover {
   background: var(--surface-container-high);
 }
 
-.select-input:focus {
+.select-trigger:focus-visible,
+.select-field.open .select-trigger {
   background: var(--surface-container-lowest);
   border-color: rgba(77, 101, 71, 0.3);
+  box-shadow: 0 0 0 4px rgba(77, 101, 71, 0.06);
+}
+
+.select-trigger-label {
+  min-width: 0;
+  text-align: left;
+}
+
+.select-trigger-icon {
+  flex-shrink: 0;
+  color: var(--on-surface-variant);
+  transition: transform var(--transition), color var(--transition);
+}
+
+.select-field.open .select-trigger-icon {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.select-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(163, 178, 158, 0.18);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-ambient);
+  z-index: 20;
+}
+
+.select-field.open .select-menu {
+  display: flex;
+}
+
+.select-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border: none;
+  border-radius: calc(var(--radius-lg) - 2px);
+  background: transparent;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: left;
+}
+
+.select-option:hover,
+.select-option:focus-visible {
+  background: var(--surface-container-low);
+  outline: none;
+}
+
+.select-option.active {
+  background: var(--primary-container);
+  color: var(--primary-dim);
 }
 
 /* ── Range Input ── */
