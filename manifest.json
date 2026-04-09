@@ -10,7 +10,10 @@
     "storage",
     "unlimitedStorage",
     "downloads",
-    "contextMenus"
+    "contextMenus",
+    "tabs",
+    "history",
+    "cookies"
   ],
   "host_permissions": [
     "<all_urls>"
